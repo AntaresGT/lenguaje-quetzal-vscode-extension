@@ -1,0 +1,142 @@
+{
+    "name": "lenguaje-quetzal-vscode-extension",
+    "displayName": "Lenguaje Quetzal",
+    "description": "Soporte completo para el lenguaje de programación Quetzal",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Formatters",
+        "Snippets"
+    ],
+    "keywords": [
+        "quetzal",
+        "lenguaje",
+        "programacion",
+        "español",
+        "interprete"
+    ],
+    "icon": "imagenes/logo_lenguaje_quetzal.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tu-usuario/lenguaje-quetzal-vscode-extension.git"
+    },
+    "bugs": {
+        "url": "https://github.com/tu-usuario/lenguaje-quetzal-vscode-extension/issues"
+    },
+    "homepage": "https://github.com/tu-usuario/lenguaje-quetzal-vscode-extension#readme",
+    "license": "SEE LICENSE IN LICENSE",
+    "author": {
+        "name": "Allam López",
+        "email": "alan@antaresgt.com"
+    },
+    "publisher": "antaresgt",
+    "displayLanguage": "es",
+    "main": "./out/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "quetzal",
+                "aliases": [
+                    "Quetzal",
+                    "quetzal"
+                ],
+                "extensions": [
+                    ".qz"
+                ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "light": "./imagenes/icono_archivos_qz.png",
+                    "dark": "./imagenes/icono_archivos_qz.png"
+                }
+            }
+        ],
+        "grammars": [
+            {
+                "language": "quetzal",
+                "scopeName": "source.quetzal",
+                "path": "./syntaxes/quetzal.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "quetzal",
+                "path": "./snippets/quetzal.json"
+            }
+        ],
+        "themes": [
+            {
+                "label": "Tema Quetzal Oscuro",
+                "uiTheme": "vs-dark",
+                "path": "./themes/quetzal-dark-theme.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "quetzal.formatear_documento",
+                "title": "Formatear Documento Quetzal"
+            },
+            {
+                "command": "quetzal.ejecutar_archivo",
+                "title": "Ejecutar Archivo Quetzal"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "resourceExtname == .qz",
+                    "command": "quetzal.formatear_documento",
+                    "group": "1_modification"
+                },
+                {
+                    "when": "resourceExtname == .qz",
+                    "command": "quetzal.ejecutar_archivo",
+                    "group": "navigation"
+                }
+            ]
+        },
+        "configuration": {
+            "type": "object",
+            "title": "Configuración Lenguaje Quetzal",
+            "properties": {
+                "quetzal.formateador.habilitado": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Habilitar el formateador automático para archivos Quetzal"
+                },
+                "quetzal.formateador.sangría": {
+                    "type": "number",
+                    "default": 4,
+                    "description": "Número de espacios para la sangría"
+                },
+                "quetzal.autocompletado.habilitado": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Habilitar autocompletado para Quetzal"
+                },
+                "quetzal.diagnosticos.habilitado": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Habilitar diagnósticos de sintaxis y errores"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "@types/node": "^18.0.0",
+        "@types/vscode": "^1.80.0",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^8.0.0",
+        "vscode-languageserver": "^8.0.0",
+        "vscode-languageserver-textdocument": "^1.0.0"
+    }
+}

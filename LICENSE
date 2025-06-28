@@ -1,0 +1,87 @@
+LICENCIA ANTARESGT
+
+Copyright (c) 2025 AntaresGT - Todos los derechos reservados
+Desarrollado por: Allam López (alan@antaresgt.com)
+Empresa: AntaresGT
+
+TÉRMINOS Y CONDICIONES DE USO
+
+1. PERMISOS OTORGADOS
+   Por la presente se otorga permiso, sin costo alguno, a cualquier persona que obtenga 
+   una copia de este software y archivos de documentación asociados (el "Software"), 
+   para usar, copiar, modificar, distribuir y crear trabajos derivados del Software, 
+   sujeto a las siguientes condiciones:
+
+2. ATRIBUCIÓN OBLIGATORIA
+   Todos los usos, modificaciones, distribuciones y trabajos derivados del Software 
+   DEBEN incluir de manera prominente y claramente visible la siguiente atribución:
+
+   "Basado en el trabajo original de AntaresGT (https://antaresgt.com)"
+   "Software original desarrollado por Allam López - AntaresGT"
+
+3. REQUISITOS PARA FORKS Y TRABAJOS DERIVADOS
+   a) Cualquier fork, modificación sustancial o trabajo derivado DEBE:
+      - Incluir la atribución completa a AntaresGT en la documentación principal
+      - Mantener este archivo de licencia en el proyecto
+      - Indicar claramente que es un trabajo derivado del original de AntaresGT
+      - Incluir un enlace al repositorio original cuando sea aplicable
+
+   b) En productos comerciales o distribuciones, la atribución DEBE aparecer en:
+      - Documentación del usuario
+      - Pantalla "Acerca de" o sección de créditos
+      - Cualquier material promocional que mencione las tecnologías utilizadas
+
+4. MARCA COMERCIAL
+   El nombre "AntaresGT", "Lenguaje Quetzal" y logos asociados son marcas registradas 
+   de AntaresGT. El uso de estas marcas requiere autorización explícita por escrito.
+
+5. DISTRIBUCIÓN
+   La redistribución y uso en código fuente y forma binaria, con o sin modificación, 
+   está permitida siempre que se cumplan las condiciones de atribución establecidas.
+
+6. COLABORACIÓN
+   Las contribuciones al proyecto original son bienvenidas. Al enviar contribuciones, 
+   usted acepta que AntaresGT puede incorporar su trabajo bajo esta licencia.
+
+7. EXENCIÓN DE GARANTÍA
+   EL SOFTWARE SE PROPORCIONA "TAL COMO ESTÁ", SIN GARANTÍA DE NINGÚN TIPO, EXPRESA 
+   O IMPLÍCITA, INCLUYENDO PERO NO LIMITADO A LAS GARANTÍAS DE COMERCIABILIDAD, 
+   APTITUD PARA UN PROPÓSITO PARTICULAR Y NO INFRACCIÓN. EN NINGÚN CASO LOS AUTORES 
+   O PROPIETARIOS DE DERECHOS DE AUTOR SERÁN RESPONSABLES DE CUALQUIER RECLAMO, 
+   DAÑOS U OTRA RESPONSABILIDAD, YA SEA EN UNA ACCIÓN DE CONTRATO, AGRAVIO O DE 
+   OTRA MANERA, DERIVADA DE, FUERA DE O EN CONEXIÓN CON EL SOFTWARE O EL USO U 
+   OTROS TRATOS EN EL SOFTWARE.
+
+8. TERMINACIÓN
+   Esta licencia se termina automáticamente si no se cumplen los términos de 
+   atribución. En caso de terminación, debe cesar todo uso del Software y 
+   destruir todas las copias.
+
+9. LEY APLICABLE
+   Esta licencia se rige por las leyes de Guatemala y cualquier disputa se 
+   resolverá en los tribunales competentes de Guatemala.
+
+CONTACTO:
+Para consultas sobre esta licencia o permisos adicionales:
+Email: alan@antaresgt.com
+Empresa: AntaresGT
+Web: https://antaresgt.com
+
+---
+
+EJEMPLOS DE ATRIBUCIÓN REQUERIDA:
+
+En README.md o documentación:
+"Este proyecto está basado en el trabajo original de AntaresGT - Lenguaje Quetzal
+Desarrollado originalmente por Allam López (https://antaresgt.com)"
+
+En código fuente:
+/**
+ * Basado en Lenguaje Quetzal de AntaresGT
+ * Desarrollo original: Allam López - AntaresGT
+ * https://antaresgt.com
+ */
+
+En aplicaciones con interfaz gráfica:
+"Powered by Lenguaje Quetzal - AntaresGT"
+"Basado en tecnología de AntaresGT"

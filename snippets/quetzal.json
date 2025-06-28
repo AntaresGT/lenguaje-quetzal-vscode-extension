@@ -1,0 +1,191 @@
+{
+    "Función básica": {
+        "prefix": "funcion",
+        "body": [
+            "${1:tipo} ${2:nombre_funcion}(${3:parametros}) {",
+            "\t${4:// Código de la función}",
+            "\tretornar ${5:valor}",
+            "}"
+        ],
+        "description": "Crear una función básica en Quetzal"
+    },
+    "Función sin retorno": {
+        "prefix": "funcion_vacia",
+        "body": [
+            "vacio ${1:nombre_funcion}(${2:parametros}) {",
+            "\t${3:// Código de la función}",
+            "}"
+        ],
+        "description": "Crear una función sin valor de retorno"
+    },
+    "Declarar variable": {
+        "prefix": "var",
+        "body": [
+            "${1|entero,número,cadena,bool,lista,jsn|} ${2:nombre_variable} = ${3:valor}"
+        ],
+        "description": "Declarar una variable"
+    },
+    "Declarar variable mutable": {
+        "prefix": "mut",
+        "body": [
+            "${1|entero,número,cadena,bool,lista,jsn|} mut ${2:nombre_variable} = ${3:valor}"
+        ],
+        "description": "Declarar una variable mutable"
+    },
+    "Imprimir": {
+        "prefix": "imprimir",
+        "body": [
+            "imprimir(${1:\"mensaje\"})"
+        ],
+        "description": "Imprimir un mensaje en consola"
+    },
+    "Imprimir éxito": {
+        "prefix": "imprimir_exito",
+        "body": [
+            "imprimir_exito(${1:\"mensaje de éxito\"})"
+        ],
+        "description": "Imprimir un mensaje de éxito"
+    },
+    "Imprimir error": {
+        "prefix": "imprimir_error",
+        "body": [
+            "imprimir_error(${1:\"mensaje de error\"})"
+        ],
+        "description": "Imprimir un mensaje de error"
+    },
+    "Imprimir información": {
+        "prefix": "imprimir_info",
+        "body": [
+            "imprimir_informacion(${1:\"mensaje informativo\"})"
+        ],
+        "description": "Imprimir un mensaje informativo"
+    },
+    "Condicional si": {
+        "prefix": "si",
+        "body": [
+            "si (${1:condición}) {",
+            "\t${2:// Código si es verdadero}",
+            "}"
+        ],
+        "description": "Crear un condicional si"
+    },
+    "Condicional si-sino": {
+        "prefix": "si_sino",
+        "body": [
+            "si (${1:condición}) {",
+            "\t${2:// Código si es verdadero}",
+            "} sino {",
+            "\t${3:// Código si es falso}",
+            "}"
+        ],
+        "description": "Crear un condicional si-sino"
+    },
+    "Bucle mientras": {
+        "prefix": "mientras",
+        "body": [
+            "mientras (${1:condición}) {",
+            "\t${2:// Código del bucle}",
+            "}"
+        ],
+        "description": "Crear un bucle mientras"
+    },
+    "Bucle para": {
+        "prefix": "para",
+        "body": [
+            "para (${1:variable} = ${2:inicio}; ${3:condición}; ${4:incremento}) {",
+            "\t${5:// Código del bucle}",
+            "}"
+        ],
+        "description": "Crear un bucle para"
+    },
+    "Bucle para-en": {
+        "prefix": "para_en",
+        "body": [
+            "para (${1:elemento} en ${2:lista}) {",
+            "\t${3:// Código del bucle}",
+            "}"
+        ],
+        "description": "Crear un bucle para-en (foreach)"
+    },
+    "Objeto": {
+        "prefix": "objeto",
+        "body": [
+            "objeto ${1:NombreObjeto} {",
+            "\tpublico:",
+            "\t\t${2|entero,número,cadena,bool|} ${3:propiedad}",
+            "",
+            "\t\t${1:NombreObjeto}() {",
+            "\t\t\t${4:// Constructor}",
+            "\t\t}",
+            "",
+            "\t\t${5|entero,número,cadena,bool,vacio|} ${6:metodo}() {",
+            "\t\t\t${7:// Método}",
+            "\t\t\tretornar ${8:valor}",
+            "\t\t}",
+            "",
+            "\tprivado:",
+            "\t\t${9:// Propiedades y métodos privados}",
+            "}"
+        ],
+        "description": "Crear un objeto con propiedades públicas y privadas"
+    },
+    "JSON": {
+        "prefix": "jsn",
+        "body": [
+            "jsn ${1:nombre_json} = {",
+            "\t${2:clave}: \"${3:valor}\",",
+            "\t${4:otra_clave}: ${5:otro_valor}",
+            "}"
+        ],
+        "description": "Crear un objeto JSON"
+    },
+    "Lista": {
+        "prefix": "lista",
+        "body": [
+            "lista<${1|entero,número,cadena,bool|}> ${2:nombre_lista} = [${3:valores}]"
+        ],
+        "description": "Crear una lista tipada"
+    },
+    "Try-Catch": {
+        "prefix": "intentar",
+        "body": [
+            "intentar {",
+            "\t${1:// Código que puede fallar}",
+            "} atrapar (${2:excepción}) {",
+            "\t${3:// Manejo de la excepción}",
+            "} finalmente {",
+            "\t${4:// Código que siempre se ejecuta}",
+            "}"
+        ],
+        "description": "Bloque intentar-atrapar-finalmente"
+    },
+    "Importar": {
+        "prefix": "importar",
+        "body": [
+            "importar {",
+            "\t${1:funciones},",
+            "\t${2:variables}",
+            "} desde \"${3:ruta/al/modulo.qz}\""
+        ],
+        "description": "Importar módulo"
+    },
+    "Exportar": {
+        "prefix": "exportar",
+        "body": [
+            "exportar {",
+            "\t${1:funciones},",
+            "\t${2:variables}",
+            "}"
+        ],
+        "description": "Exportar elementos del módulo"
+    },
+    "Comentario de bloque": {
+        "prefix": "/*",
+        "body": [
+            "/*",
+            " * ${1:Descripción del bloque}",
+            " */"
+        ],
+        "description": "Comentario multilínea"
+    }
+}

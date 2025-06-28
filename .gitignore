@@ -1,0 +1,79 @@
+# === ARCHIVOS DE CONTEXTO LOCAL ===
+/ejemplos-lenguaje-quetzal
+/contexto-ia
+
+# === NODE.JS ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.npm
+.yarn-integrity
+
+# === TYPESCRIPT COMPILADO ===
+out/
+dist/
+build/
+*.js.map
+*.d.ts.map
+
+# === VSCODE EXTENSIÓN ===
+*.vsix
+.vscode-test/
+.vscode-test-electron/
+
+# === ARCHIVOS TEMPORALES Y LOGS ===
+*.log
+*.tmp
+*.temp
+*.cache
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# === ARCHIVOS DE SISTEMA ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# === CONFIGURACIÓN LOCAL ===
+.env
+.env.local
+.env.*.local
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+
+# === TYPESCRIPT ===
+*.tsbuildinfo
+
+# === ARCHIVOS DE RESPALDO ===
+*.bak
+*.backup
+*.old
+*.orig
+
+# === ARCHIVOS DE PRUEBA LOCALES ===
+test-workspace/
+test-files/
+ejemplo_demo.qz
+DESARROLLO.md
+
+# === ARCHIVOS DE DESARROLLO ===
+.nyc_output/
+coverage/
+.coverage/
+*.lcov
+
+# === ARCHIVOS DE EMPAQUETADO ===
+*.tgz
+*.tar.gz

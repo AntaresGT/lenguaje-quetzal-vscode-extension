@@ -1,0 +1,197 @@
+{
+    "name": "Tema Quetzal Oscuro",
+    "type": "dark",
+    "colors": {
+        "editor.background": "#1e1e1e",
+        "editor.foreground": "#d4d4d4",
+        "editor.lineHighlightBackground": "#2d2d30",
+        "editor.selectionBackground": "#264f78",
+        "editorCursor.foreground": "#aeafad",
+        "editorWhitespace.foreground": "#404040"
+    },
+    "tokenColors": [
+        {
+            "name": "Comentarios",
+            "scope": [
+                "comment.line.double-slash.quetzal",
+                "comment.block.quetzal"
+            ],
+            "settings": {
+                "foreground": "#6A9955",
+                "fontStyle": "italic"
+            }
+        },
+        {
+            "name": "Cadenas de texto",
+            "scope": [
+                "string.quoted.double.quetzal",
+                "string.quoted.single.quetzal",
+                "string.template.quetzal"
+            ],
+            "settings": {
+                "foreground": "#CE9178"
+            }
+        },
+        {
+            "name": "Números",
+            "scope": [
+                "constant.numeric.integer.quetzal",
+                "constant.numeric.float.quetzal"
+            ],
+            "settings": {
+                "foreground": "#B5CEA8"
+            }
+        },
+        {
+            "name": "Palabras reservadas de control",
+            "scope": [
+                "keyword.control.quetzal"
+            ],
+            "settings": {
+                "foreground": "#C586C0",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "name": "Otras palabras reservadas",
+            "scope": [
+                "keyword.other.quetzal"
+            ],
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "name": "Operadores lógicos",
+            "scope": [
+                "keyword.operator.logical.quetzal"
+            ],
+            "settings": {
+                "foreground": "#C586C0"
+            }
+        },
+        {
+            "name": "Modificadores",
+            "scope": [
+                "storage.modifier.quetzal"
+            ],
+            "settings": {
+                "foreground": "#4FC1FF"
+            }
+        },
+        {
+            "name": "Tipos de datos",
+            "scope": [
+                "storage.type.quetzal"
+            ],
+            "settings": {
+                "foreground": "#4EC9B0",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "name": "Valores booleanos",
+            "scope": [
+                "constant.language.boolean.quetzal"
+            ],
+            "settings": {
+                "foreground": "#569CD6"
+            }
+        },
+        {
+            "name": "Definición de funciones",
+            "scope": [
+                "entity.name.function.definition.quetzal",
+                "entity.name.function.quetzal"
+            ],
+            "settings": {
+                "foreground": "#DCDCAA"
+            }
+        },
+        {
+            "name": "Llamadas a funciones",
+            "scope": [
+                "entity.name.function.call.quetzal"
+            ],
+            "settings": {
+                "foreground": "#DCDCAA"
+            }
+        },
+        {
+            "name": "Funciones builtin",
+            "scope": [
+                "support.function.builtin.quetzal"
+            ],
+            "settings": {
+                "foreground": "#4FC1FF",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "name": "Variables",
+            "scope": [
+                "variable.other.quetzal",
+                "variable.other.declaration.quetzal"
+            ],
+            "settings": {
+                "foreground": "#9CDCFE"
+            }
+        },
+        {
+            "name": "Objetos y clases",
+            "scope": [
+                "entity.name.type.class.quetzal",
+                "entity.name.type.quetzal",
+                "storage.type.class.quetzal"
+            ],
+            "settings": {
+                "foreground": "#4EC9B0",
+                "fontStyle": "bold"
+            }
+        },
+        {
+            "name": "Operadores",
+            "scope": [
+                "keyword.operator.assignment.quetzal",
+                "keyword.operator.comparison.quetzal",
+                "keyword.operator.arithmetic.quetzal",
+                "keyword.operator.logical.quetzal",
+                "keyword.operator.ternary.quetzal"
+            ],
+            "settings": {
+                "foreground": "#D4D4D4"
+            }
+        },
+        {
+            "name": "Puntuación",
+            "scope": [
+                "punctuation.definition.block.quetzal",
+                "punctuation.definition.array.quetzal",
+                "punctuation.definition.parameters.quetzal",
+                "punctuation.separator.quetzal"
+            ],
+            "settings": {
+                "foreground": "#D4D4D4"
+            }
+        },
+        {
+            "name": "Variables de template",
+            "scope": [
+                "variable.other.placeholder.quetzal"
+            ],
+            "settings": {
+                "foreground": "#9CDCFE",
+                "fontStyle": "italic"
+            }
+        },
+        {
+            "name": "Caracteres de escape",
+            "scope": [
+                "constant.character.escape.quetzal"
+            ],
+            "settings": {
+                "foreground": "#D7BA7D"
+            }
+        }
+    ]
+}
