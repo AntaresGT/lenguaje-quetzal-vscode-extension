@@ -13,3 +13,8 @@ node_modules/**
 *.vsix
 .DS_Store
 thumbs.db
+ejemplo_demo.qz
+DESARROLLO.md
+ejemplos-lenguaje-quetzal/**
+contexto-ia/**
+out/formateador_nuevo.js

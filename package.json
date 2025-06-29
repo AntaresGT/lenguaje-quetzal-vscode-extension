@@ -21,12 +21,12 @@
     "icon": "imagenes/logo_lenguaje_quetzal.png",
     "repository": {
         "type": "git",
-        "url": "https://github.com/tu-usuario/lenguaje-quetzal-vscode-extension.git"
+        "url": "https://github.com/antaresgt/lenguaje-quetzal-vscode-extension.git"
     },
     "bugs": {
-        "url": "https://github.com/tu-usuario/lenguaje-quetzal-vscode-extension/issues"
+        "url": "https://github.com/antaresgt/lenguaje-quetzal-vscode-extension/issues"
     },
-    "homepage": "https://github.com/tu-usuario/lenguaje-quetzal-vscode-extension#readme",
+    "homepage": "https://github.com/antaresgt/lenguaje-quetzal-vscode-extension#readme",
     "license": "SEE LICENSE IN LICENSE",
     "author": {
         "name": "Allam López",
