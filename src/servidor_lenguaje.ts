@@ -27,7 +27,8 @@ export class ServidorLenguajeQuetzal {
     private detectar_contexto_funcion(document: vscode.TextDocument, position: vscode.Position): boolean {
         for (let i = position.line; i >= 0; i--) {
             const linea = document.lineAt(i).text.trim();
-            if (linea.includes('funcion ') || linea.includes('fn ')) {
+            if (linea.includes('función ') || linea.includes('funcion ') || linea.includes('fn ') || 
+                /\b(entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\(/.test(linea)) {
                 return true;
             }
             if (linea.includes('objeto ')) {
@@ -65,11 +66,18 @@ export class ServidorLenguajeQuetzal {
         const funciones: string[] = [];
         const texto_completo = document.getText();
         
-        // Expresión regular para encontrar definiciones de funciones
-        const regex_funciones = /(?:funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        // Expresión regular para encontrar definiciones de funciones (nueva sintaxis)
+        const regex_funciones_nueva = /(entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
         let coincidencia;
         
-        while ((coincidencia = regex_funciones.exec(texto_completo)) !== null) {
+        while ((coincidencia = regex_funciones_nueva.exec(texto_completo)) !== null) {
+            funciones.push(coincidencia[2]);
+        }
+        
+        // Expresión regular para encontrar definiciones de funciones (sintaxis legacy)
+        const regex_funciones_legacy = /(?:función|funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        
+        while ((coincidencia = regex_funciones_legacy.exec(texto_completo)) !== null) {
             funciones.push(coincidencia[1]);
         }
         
@@ -84,7 +92,7 @@ export class ServidorLenguajeQuetzal {
         const texto_completo = document.getText();
         
         // Expresión regular para encontrar declaraciones de variables
-        const regex_variables = /(?:entero|número|numero|cadena|bool|lista|jsn|vacio)\s+(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/g;
+        const regex_variables = /(?:entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/g;
         let coincidencia;
         
         while ((coincidencia = regex_variables.exec(texto_completo)) !== null) {

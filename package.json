@@ -2,7 +2,7 @@
     "name": "lenguaje-quetzal-vscode-extension",
     "displayName": "Lenguaje Quetzal",
     "description": "Soporte completo para el lenguaje de programación Quetzal",
-    "version": "0.0.1",
+    "version": "0.0.12",
     "engines": {
         "vscode": "^1.80.0"
     },

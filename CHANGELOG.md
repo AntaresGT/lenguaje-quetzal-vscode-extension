@@ -1,9 +1,27 @@
 # Changelog
 
-Todos los cambios notables en este proyecto serán documentados en este archivo.
+Todos los cambios notables de este proyecto serán documentados en este archivo.
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
-y este proyecto adhiere al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.0.12] - 2025-06-28
+
+### ✨ Agregado
+- **Soporte para camelCase y snake_case** en variables y funciones
+- **Palabras reservadas con tilde** (`función`, `número`, `vacío`, `público`, etc.)
+- **Snippets actualizados** para ambos estilos de nomenclatura
+- **Protección mejorada** contra sobrescritura de palabras reservadas
+
+### 🔄 Cambiado
+- **Sintaxis de funciones actualizada** para usar `tipo nombreFuncion()` en lugar de `funcion nombreFuncion()`
+- **Diagnósticos más flexibles** que permiten ambos estilos de nomenclatura
+- **Gramática mejorada** para reconocer la sintaxis real del lenguaje Quetzal
+- **Autocompletado expandido** con palabras reservadas con y sin tilde
+
+### 🐛 Corregido
+- Reconocimiento incorrecto de sintaxis de funciones
+- Forzado innecesario del uso de snake_case únicamente
+- Falta de soporte para palabras reservadas con acentos
+
+---
 
 ## [0.0.1] - 2025-06-28
 

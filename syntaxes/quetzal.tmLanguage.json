@@ -113,7 +113,7 @@
                 },
                 {
                     "name": "keyword.other.quetzal",
-                    "match": "\\b(importar|exportar|desde|como|nuevo|ambiente|libre|asincrono|esperar)\\b"
+                    "match": "\\b(importar|exportar|desde|como|nuevo|ambiente|libre|asíncrono|asincrono|esperar)\\b"
                 },
                 {
                     "name": "keyword.operator.logical.quetzal",
@@ -121,15 +121,15 @@
                 },
                 {
                     "name": "storage.modifier.quetzal",
-                    "match": "\\b(mut|publico|privado)\\b"
+                    "match": "\\b(mut|público|publico|privado)\\b"
                 },
                 {
                     "name": "entity.name.function.quetzal",
-                    "match": "\\b(funcion|fn)\\b"
+                    "match": "\\b(función|funcion|fn)\\b"
                 },
                 {
                     "name": "storage.type.class.quetzal",
-                    "match": "\\b(objeto|excepción)\\b"
+                    "match": "\\b(objeto|excepción|excepcion)\\b"
                 }
             ]
         },
@@ -137,7 +137,7 @@
             "patterns": [
                 {
                     "name": "storage.type.quetzal",
-                    "match": "\\b(vacio|entero|número|numero|cadena|bool|lista|jsn|tipo)\\b"
+                    "match": "\\b(vacío|vacio|entero|número|numero|cadena|bool|lista|jsn|tipo)\\b"
                 },
                 {
                     "name": "constant.language.boolean.quetzal",
@@ -177,6 +177,18 @@
             "patterns": [
                 {
                     "name": "entity.name.function.definition.quetzal",
+                    "match": "\\b(entero|número|numero|cadena|bool|lista|jsn|vacio)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.quetzal"
+                        },
+                        "2": {
+                            "name": "entity.name.function.quetzal"
+                        }
+                    }
+                },
+                {
+                    "name": "entity.name.function.definition.legacy.quetzal",
                     "match": "\\b(funcion|fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\b",
                     "captures": {
                         "1": {
@@ -206,7 +218,7 @@
             "patterns": [
                 {
                     "name": "variable.other.declaration.quetzal",
-                    "match": "\\b(entero|número|numero|cadena|bool|lista|jsn|vacio)\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\b",
+                    "match": "\\b(entero|número|numero|cadena|bool|lista|jsn|vacio)\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?==)",
                     "captures": {
                         "1": {
                             "name": "storage.type.quetzal"
@@ -221,7 +233,7 @@
                 },
                 {
                     "name": "variable.other.quetzal",
-                    "match": "\\b[a-z_][a-zA-Z0-9_]*\\b"
+                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
                 }
             ]
         },

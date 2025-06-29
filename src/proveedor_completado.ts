@@ -55,6 +55,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('romper', 'Romper bucle'),
             this.crear_item_palabra_reservada('continuar', 'Continuar bucle'),
             this.crear_item_palabra_reservada('retornar', 'Retornar valor'),
+            this.crear_item_palabra_reservada('función', 'Definir función (con tilde)'),
             this.crear_item_palabra_reservada('funcion', 'Definir función'),
             this.crear_item_palabra_reservada('objeto', 'Definir objeto'),
             this.crear_item_palabra_reservada('nuevo', 'Crear nueva instancia'),
@@ -70,16 +71,24 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('y', 'Operador lógico AND'),
             this.crear_item_palabra_reservada('o', 'Operador lógico OR'),
             this.crear_item_palabra_reservada('mut', 'Modificador mutable'),
+            this.crear_item_palabra_reservada('público', 'Modificador público (con tilde)'),
             this.crear_item_palabra_reservada('publico', 'Modificador público'),
             this.crear_item_palabra_reservada('privado', 'Modificador privado'),
-            this.crear_item_palabra_reservada('libre', 'Función estática')
+            this.crear_item_palabra_reservada('libre', 'Función estática'),
+            this.crear_item_palabra_reservada('asíncrono', 'Función asíncrona (con tilde)'),
+            this.crear_item_palabra_reservada('asincrono', 'Función asíncrona'),
+            this.crear_item_palabra_reservada('esperar', 'Esperar resultado asíncrono'),
+            this.crear_item_palabra_reservada('excepción', 'Tipo excepción (con tilde)'),
+            this.crear_item_palabra_reservada('excepcion', 'Tipo excepción')
         ];
 
         // Tipos de datos
         this.tipos_datos = [
+            this.crear_item_tipo('vacío', 'Tipo sin valor (con tilde)'),
             this.crear_item_tipo('vacio', 'Tipo sin valor'),
             this.crear_item_tipo('entero', 'Número entero'),
-            this.crear_item_tipo('número', 'Número decimal'),
+            this.crear_item_tipo('número', 'Número decimal (con tilde)'),
+            this.crear_item_tipo('numero', 'Número decimal'),
             this.crear_item_tipo('cadena', 'Cadena de texto'),
             this.crear_item_tipo('bool', 'Valor booleano'),
             this.crear_item_tipo('lista', 'Lista de elementos'),

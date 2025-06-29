@@ -2,35 +2,68 @@
     "Función básica": {
         "prefix": "funcion",
         "body": [
-            "${1:tipo} ${2:nombre_funcion}(${3:parametros}) {",
+            "${1:tipo} ${2:nombreFuncion}(${3:parametros}) {",
             "\t${4:// Código de la función}",
             "\tretornar ${5:valor}",
             "}"
         ],
         "description": "Crear una función básica en Quetzal"
     },
+    "Función básica snake_case": {
+        "prefix": "funcion_snake",
+        "body": [
+            "${1:tipo} ${2:nombre_funcion}(${3:parametros}) {",
+            "\t${4:// Código de la función}",
+            "\tretornar ${5:valor}",
+            "}"
+        ],
+        "description": "Crear una función básica en snake_case"
+    },
     "Función sin retorno": {
         "prefix": "funcion_vacia",
         "body": [
-            "vacio ${1:nombre_funcion}(${2:parametros}) {",
+            "vacio ${1:nombreFuncion}(${2:parametros}) {",
             "\t${3:// Código de la función}",
             "}"
         ],
         "description": "Crear una función sin valor de retorno"
     },
+    "Función sin retorno snake_case": {
+        "prefix": "funcion_vacia_snake",
+        "body": [
+            "vacio ${1:nombre_funcion}(${2:parametros}) {",
+            "\t${3:// Código de la función}",
+            "}"
+        ],
+        "description": "Crear una función sin valor de retorno en snake_case"
+    },
     "Declarar variable": {
         "prefix": "var",
         "body": [
+            "${1|entero,número,cadena,bool,lista,jsn|} ${2:nombreVariable} = ${3:valor}"
+        ],
+        "description": "Declarar una variable en camelCase"
+    },
+    "Declarar variable snake_case": {
+        "prefix": "var_snake",
+        "body": [
             "${1|entero,número,cadena,bool,lista,jsn|} ${2:nombre_variable} = ${3:valor}"
         ],
-        "description": "Declarar una variable"
+        "description": "Declarar una variable en snake_case"
     },
     "Declarar variable mutable": {
         "prefix": "mut",
         "body": [
+            "${1|entero,número,cadena,bool,lista,jsn|} mut ${2:nombreVariable} = ${3:valor}"
+        ],
+        "description": "Declarar una variable mutable en camelCase"
+    },
+    "Declarar variable mutable snake_case": {
+        "prefix": "mut_snake",
+        "body": [
             "${1|entero,número,cadena,bool,lista,jsn|} mut ${2:nombre_variable} = ${3:valor}"
         ],
-        "description": "Declarar una variable mutable"
+        "description": "Declarar una variable mutable en snake_case"
     },
     "Imprimir": {
         "prefix": "imprimir",

@@ -46,13 +46,13 @@ export class DiagnosticadorQuetzal {
         this.palabras_reservadas = new Set([
             'si', 'sino', 'mientras', 'para', 'hacer', 'romper', 'continuar',
             'retornar', 'en', 'intentar', 'atrapar', 'finalmente', 'lanzar',
-            'funcion', 'fn', 'objeto', 'nuevo', 'ambiente', 'libre',
-            'importar', 'exportar', 'desde', 'como', 'asincrono', 'esperar',
-            'y', 'o', 'mut', 'publico', 'privado', 'tipo', 'excepción'
+            'función', 'funcion', 'fn', 'objeto', 'nuevo', 'ambiente', 'libre',
+            'importar', 'exportar', 'desde', 'como', 'asíncrono', 'asincrono', 'esperar',
+            'y', 'o', 'mut', 'público', 'publico', 'privado', 'tipo', 'excepción', 'excepcion'
         ]);
 
         this.tipos_datos = new Set([
-            'vacio', 'entero', 'número', 'numero', 'cadena', 'bool', 'lista', 'jsn',
+            'vacío', 'vacio', 'entero', 'número', 'numero', 'cadena', 'bool', 'lista', 'jsn',
             'verdadero', 'falso'
         ]);
     }
@@ -134,23 +134,15 @@ export class DiagnosticadorQuetzal {
         const linea_limpia = linea.trim();
 
         // Regex para detectar declaraciones de variables
-        const regex_declaracion = /^(entero|número|numero|cadena|bool|lista|jsn|vacio)\s+(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/;
+        const regex_declaracion = /^(entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/;
         const coincidencia = linea_limpia.match(regex_declaracion);
 
         if (coincidencia) {
             const nombre_variable = coincidencia[3];
             
-            // Verificar convención de nombres (snake_case para variables)
-            if (!/^[a-z_][a-z0-9_]*$/.test(nombre_variable)) {
-                const posicion_inicio = linea.indexOf(nombre_variable);
-                const rango = new vscode.Range(numero_linea, posicion_inicio, numero_linea, posicion_inicio + nombre_variable.length);
-                diagnosticos.push(new vscode.Diagnostic(
-                    rango,
-                    'Las variables deben usar snake_case (minúsculas y guiones bajos)',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-
+            // Ya no verificamos convención de nombres - permitimos camelCase y snake_case
+            // Solo verificamos que no sean palabras reservadas
+            
             // Verificar que las palabras reservadas no se usen como nombres de variables
             if (this.palabras_reservadas.has(nombre_variable) || this.tipos_datos.has(nombre_variable)) {
                 const posicion_inicio = linea.indexOf(nombre_variable);
@@ -172,24 +164,18 @@ export class DiagnosticadorQuetzal {
     private analizar_llamadas_funciones(linea: string, numero_linea: number): vscode.Diagnostic[] {
         const diagnosticos: vscode.Diagnostic[] = [];
         
-        // Regex para detectar definiciones de funciones
-        const regex_funcion = /(?:funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/;
-        const coincidencia = linea.match(regex_funcion);
+        // Regex para detectar definiciones de funciones (tanto nuevas como legacy)
+        const regex_funcion_nueva = /^(entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/;
+        const regex_funcion_legacy = /(?:función|funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/;
+        
+        let coincidencia = linea.match(regex_funcion_nueva) || linea.match(regex_funcion_legacy);
 
         if (coincidencia) {
-            const nombre_funcion = coincidencia[1];
+            const nombre_funcion = coincidencia[regex_funcion_nueva ? 2 : 1];
             
-            // Verificar convención de nombres (snake_case para funciones)
-            if (!/^[a-z_][a-z0-9_]*$/.test(nombre_funcion)) {
-                const posicion_inicio = linea.indexOf(nombre_funcion);
-                const rango = new vscode.Range(numero_linea, posicion_inicio, numero_linea, posicion_inicio + nombre_funcion.length);
-                diagnosticos.push(new vscode.Diagnostic(
-                    rango,
-                    'Las funciones deben usar snake_case (minúsculas y guiones bajos)',
-                    vscode.DiagnosticSeverity.Warning
-                ));
-            }
-
+            // Ya no verificamos convención de nombres - permitimos camelCase y snake_case
+            // Solo verificamos que no sean palabras reservadas
+            
             // Verificar que las palabras reservadas no se usen como nombres de funciones
             if (this.palabras_reservadas.has(nombre_funcion) || this.tipos_datos.has(nombre_funcion)) {
                 const posicion_inicio = linea.indexOf(nombre_funcion);
