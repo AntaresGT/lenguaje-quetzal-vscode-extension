@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
     const formateador = new FormateadorQuetzal();
     
     // Inicializar proveedor de autocompletado
-    const proveedor_completado = new ProveedorCompletado();
+    const proveedor_completado = new ProveedorCompletado(servidor_lenguaje);
     
     // Inicializar diagnosticador
     const diagnosticador = new DiagnosticadorQuetzal();

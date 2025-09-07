@@ -1,11 +1,16 @@
 import * as vscode from 'vscode';
+import { ServidorLenguajeQuetzal, TipoInfo } from './servidor_lenguaje';
+
+const IDENT_UNICODE = /[\p{L}_][\p{L}\p{N}_]*/u;
 
 export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private palabras_reservadas: vscode.CompletionItem[] = [];
     private tipos_datos: vscode.CompletionItem[] = [];
     private funciones_builtin: vscode.CompletionItem[] = [];
+    private servidor: ServidorLenguajeQuetzal;
 
-    constructor() {
+    constructor(servidor?: ServidorLenguajeQuetzal) {
+        this.servidor = servidor ?? new ServidorLenguajeQuetzal();
         this.inicializar_completados();
         console.log('Proveedor de Autocompletado Quetzal inicializado');
     }
@@ -23,7 +28,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         const linea_actual = document.lineAt(position.line);
         const texto_antes_cursor = linea_actual.text.substring(0, position.character);
         
-        const completados: vscode.CompletionItem[] = [];
+    const completados: vscode.CompletionItem[] = [];
 
         // Agregar palabras reservadas
         completados.push(...this.palabras_reservadas);
@@ -35,7 +40,11 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         completados.push(...this.funciones_builtin);
 
         // Agregar completados contextuales
-        completados.push(...this.obtener_completados_contextuales(document, position));
+    completados.push(...this.obtener_completados_contextuales(document, position));
+
+    // Autocompletado por tipo si hay un identificador antes de un punto
+    const tipados = this.obtener_completados_por_tipo(document, position, texto_antes_cursor);
+    completados.push(...tipados);
 
         // Filtrar por relevancia
         return this.filtrar_completados(completados, texto_antes_cursor);
@@ -55,6 +64,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('romper', 'Romper bucle'),
             this.crear_item_palabra_reservada('continuar', 'Continuar bucle'),
             this.crear_item_palabra_reservada('retornar', 'Retornar valor'),
+            this.crear_item_palabra_reservada('var', 'Variable mutable'),
             this.crear_item_palabra_reservada('función', 'Definir función (con tilde)'),
             this.crear_item_palabra_reservada('funcion', 'Definir función'),
             this.crear_item_palabra_reservada('objeto', 'Definir objeto'),
@@ -66,11 +76,12 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('como', 'Crear alias'),
             this.crear_item_palabra_reservada('intentar', 'Bloque try'),
             this.crear_item_palabra_reservada('atrapar', 'Bloque catch'),
+            this.crear_item_palabra_reservada('capturar', 'Bloque catch'),
             this.crear_item_palabra_reservada('finalmente', 'Bloque finally'),
             this.crear_item_palabra_reservada('lanzar', 'Lanzar excepción'),
             this.crear_item_palabra_reservada('y', 'Operador lógico AND'),
             this.crear_item_palabra_reservada('o', 'Operador lógico OR'),
-            this.crear_item_palabra_reservada('mut', 'Modificador mutable'),
+            this.crear_item_palabra_reservada('mut', 'Modificador mutable (legacy)'),
             this.crear_item_palabra_reservada('público', 'Modificador público (con tilde)'),
             this.crear_item_palabra_reservada('publico', 'Modificador público'),
             this.crear_item_palabra_reservada('privado', 'Modificador privado'),
@@ -89,25 +100,39 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_tipo('entero', 'Número entero'),
             this.crear_item_tipo('número', 'Número decimal (con tilde)'),
             this.crear_item_tipo('numero', 'Número decimal'),
-            this.crear_item_tipo('cadena', 'Cadena de texto'),
-            this.crear_item_tipo('bool', 'Valor booleano'),
+            this.crear_item_tipo('texto', 'Cadena de texto'),
+            this.crear_item_tipo('cadena', 'Cadena de texto (legacy)'),
+            this.crear_item_tipo('log', 'Valor lógico'),
+            this.crear_item_tipo('bool', 'Valor booleano (legacy)'),
             this.crear_item_tipo('lista', 'Lista de elementos'),
             this.crear_item_tipo('jsn', 'Objeto JSON'),
             this.crear_item_valor('verdadero', 'Valor booleano verdadero'),
-            this.crear_item_valor('falso', 'Valor booleano falso')
+            this.crear_item_valor('falso', 'Valor booleano falso'),
+            this.crear_item_valor('nulo', 'Valor nulo para cualquier tipo')
         ];
 
         // Funciones builtin
         this.funciones_builtin = [
-            this.crear_item_funcion('imprimir', 'Imprimir mensaje en consola', 'imprimir("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_exito', 'Imprimir mensaje de éxito', 'imprimir_exito("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_error', 'Imprimir mensaje de error', 'imprimir_error("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_advertencia', 'Imprimir advertencia', 'imprimir_advertencia("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_informacion', 'Imprimir información', 'imprimir_informacion("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_depurar', 'Imprimir mensaje de debug', 'imprimir_depurar("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_alerta', 'Imprimir alerta', 'imprimir_alerta("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_confirmacion', 'Imprimir confirmación', 'imprimir_confirmacion("${1:mensaje}")')
+            this.crear_item_funcion_deprecada('imprimir', 'Reemplazado por consola.mostrar("texto")', 'imprimir("${1:mensaje}")', 'consola.mostrar("${1:mensaje}")'),
+            this.crear_item_funcion_deprecada('imprimir_exito', 'Reemplazado por consola.mostrar_exito("texto")', 'imprimir_exito("${1:mensaje}")', 'consola.mostrar_exito("${1:mensaje}")'),
+            this.crear_item_funcion_deprecada('imprimir_error', 'Reemplazado por consola.mostrar_error("texto")', 'imprimir_error("${1:mensaje}")', 'consola.mostrar_error("${1:mensaje}")'),
+            this.crear_item_funcion_deprecada('imprimir_advertencia', 'Reemplazado por consola.mostrar_advertencia("texto")', 'imprimir_advertencia("${1:mensaje}")', 'consola.mostrar_advertencia("${1:mensaje}")'),
+            this.crear_item_funcion_deprecada('imprimir_informacion', 'Reemplazado por consola.mostrar_informacion("texto")', 'imprimir_informacion("${1:mensaje}")', 'consola.mostrar_informacion("${1:mensaje}")')
         ];
+    }
+
+    /** Crear item de función deprecada con sugerencia */
+    private crear_item_funcion_deprecada(nombre: string, descripcion: string, snippet: string, sugerencia: string): vscode.CompletionItem {
+        const item = new vscode.CompletionItem(nombre, vscode.CompletionItemKind.Function);
+        item.detail = descripcion;
+        const doc = new vscode.MarkdownString();
+        doc.appendMarkdown(`⚠️ Método deprecado: ${nombre}\n\n`);
+        doc.appendMarkdown(`Usa en su lugar:\n\n\`${sugerencia}\``);
+        item.documentation = doc;
+        item.tags = [vscode.CompletionItemTag.Deprecated];
+        item.insertText = new vscode.SnippetString(snippet);
+        item.sortText = 'zzz_' + nombre; // depriorizar
+        return item;
     }
 
     /**
@@ -117,7 +142,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         const completados: vscode.CompletionItem[] = [];
         
         // Obtener funciones definidas en el documento
-        const funciones_documento = this.extraer_funciones_documento(document);
+    const funciones_documento = this.extraer_funciones_documento(document);
         funciones_documento.forEach(funcion => {
             completados.push(this.crear_item_funcion_usuario(funcion));
         });
@@ -135,6 +160,63 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         });
 
         return completados;
+    }
+
+    /**
+     * Si el usuario escribe IDENTIFICADOR. sugiere métodos según el tipo del identificador.
+     */
+    private obtener_completados_por_tipo(document: vscode.TextDocument, position: vscode.Position, texto_antes_cursor: string): vscode.CompletionItem[] {
+        const items: vscode.CompletionItem[] = [];
+        const hastaCursor = texto_antes_cursor;
+        const puntoIdx = hastaCursor.lastIndexOf('.');
+        if (puntoIdx === -1) return items;
+        const antesDelPunto = hastaCursor.substring(0, puntoIdx);
+        const match = antesDelPunto.match(new RegExp(`${IDENT_UNICODE.source}$`, 'u'));
+        if (!match) {
+            // Puede ser literal o expresión: usar heurística del servidor
+            const tipoExpr = this.servidor.tipo_de_cadena(document, antesDelPunto);
+            const metodos = this.servidor.metodos_por_tipo(tipoExpr);
+            for (const m of metodos) {
+                const ci = new vscode.CompletionItem(m.nombre, vscode.CompletionItemKind.Method);
+                ci.detail = m.detalle ? `Método (${m.detalle})` : 'Método';
+                if (m.nombre.includes('(')) ci.insertText = new vscode.SnippetString(m.nombre);
+                items.push(ci);
+            }
+            return items;
+        }
+        const nombreIdent = match[0];
+        // Sugerencias para consola.*
+        if (nombreIdent === 'consola') {
+            const metodosConsola = [
+                { n: 'mostrar', desc: 'Mostrar texto (color por defecto)' },
+                { n: 'mostrar_error', desc: 'Mostrar error (rojo)' },
+                { n: 'mostrar_advertencia', desc: 'Mostrar advertencia (amarillo)' },
+                { n: 'mostrar_exito', desc: 'Mostrar éxito (verde)' },
+                { n: 'mostrar_informacion', desc: 'Mostrar información (azul)' },
+                { n: 'pedir', desc: 'Solicitar entrada de texto' },
+                { n: 'pedir_secreto', desc: 'Solicitar entrada secreta' }
+            ];
+            for (const m of metodosConsola) {
+                const ci = new vscode.CompletionItem(m.n, vscode.CompletionItemKind.Method);
+                ci.detail = `consola.${m.n}(texto)`;
+                ci.documentation = new vscode.MarkdownString(`consola.${m.n}("${'{texto}'}") — ${m.desc}`);
+                ci.insertText = new vscode.SnippetString(`${m.n}("${'${1:texto}'}")`);
+                items.push(ci);
+            }
+            return items;
+        }
+        const tipo = this.servidor.tipo_de_identificador(document, nombreIdent);
+        if (!tipo) return items;
+        const metodos = this.servidor.metodos_por_tipo(tipo);
+        for (const m of metodos) {
+            const ci = new vscode.CompletionItem(m.nombre, vscode.CompletionItemKind.Method);
+            ci.detail = m.detalle ? `Método (${m.detalle})` : 'Método';
+            if (m.nombre.includes('(')) {
+                ci.insertText = new vscode.SnippetString(m.nombre);
+            }
+            items.push(ci);
+        }
+        return items;
     }
 
     /**
@@ -214,13 +296,15 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_funciones_documento(document: vscode.TextDocument): string[] {
         const funciones: string[] = [];
         const texto = document.getText();
-        const regex = /(?:funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        const regexNueva = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
+        const regex = new RegExp(String.raw`(?:función|funcion|fn)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
         let match;
-
+        while ((match = regexNueva.exec(texto)) !== null) {
+            funciones.push(match[2]);
+        }
         while ((match = regex.exec(texto)) !== null) {
             funciones.push(match[1]);
         }
-
         return [...new Set(funciones)]; // Eliminar duplicados
     }
 
@@ -230,13 +314,11 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_variables_documento(document: vscode.TextDocument): string[] {
         const variables: string[] = [];
         const texto = document.getText();
-        const regex = /(?:entero|número|numero|cadena|bool|lista|jsn|vacio)\s+(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/g;
+        const regex = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=`, 'ug');
         let match;
-
         while ((match = regex.exec(texto)) !== null) {
-            variables.push(match[1]);
+            variables.push(match[2]);
         }
-
         return [...new Set(variables)]; // Eliminar duplicados
     }
 
@@ -246,13 +328,11 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_objetos_documento(document: vscode.TextDocument): string[] {
         const objetos: string[] = [];
         const texto = document.getText();
-        const regex = /objeto\s+([A-Z][a-zA-Z0-9_]*)\s*\{/g;
+        const regex = new RegExp(String.raw`\bobjeto\s+([A-Z][\p{L}\p{N}_]*)\s*\{`, 'ug');
         let match;
-
         while ((match = regex.exec(texto)) !== null) {
             objetos.push(match[1]);
         }
-
         return [...new Set(objetos)]; // Eliminar duplicados
     }
 
@@ -260,7 +340,11 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
      * Filtra completados por relevancia
      */
     private filtrar_completados(completados: vscode.CompletionItem[], texto_antes_cursor: string): vscode.CompletionItem[] {
-        const palabra_actual = texto_antes_cursor.split(/\s/).pop() || '';
+        let palabra_actual = texto_antes_cursor.split(/\s/).pop() || '';
+        // Si contiene punto, filtrar por la parte después del último punto
+        if (palabra_actual.includes('.')) {
+            palabra_actual = palabra_actual.substring(palabra_actual.lastIndexOf('.') + 1);
+        }
         
         if (palabra_actual.length === 0) {
             return completados;
@@ -291,12 +375,18 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             return new vscode.Hover(tipo_dato.documentation as vscode.MarkdownString);
         }
 
-        // Buscar en funciones builtin
-        const funcion_builtin = this.funciones_builtin.find(item => 
-            item.label === palabra
-        );
+        // Buscar en funciones builtin y marcar deprecadas si aplica
+        const funcion_builtin = this.funciones_builtin.find(item => item.label === palabra);
         if (funcion_builtin) {
             return new vscode.Hover(funcion_builtin.documentation as vscode.MarkdownString);
+        }
+
+        // Hover especial para métodos imprimir*
+        if (/^imprimir[\p{L}\p{N}_]*$/u.test(palabra)) {
+            const doc = new vscode.MarkdownString();
+            doc.appendMarkdown(`⚠️ Método deprecado: ${palabra}\n\n`);
+            doc.appendMarkdown('Usa: `consola.mostrar("texto")`, `consola.mostrar_error(...)`, `consola.mostrar_advertencia(...)`, `consola.mostrar_exito(...)`, `consola.mostrar_informacion(...)`.');
+            return new vscode.Hover(doc);
         }
 
         return null;

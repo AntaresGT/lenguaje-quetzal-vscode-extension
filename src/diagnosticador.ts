@@ -31,6 +31,9 @@ export class DiagnosticadorQuetzal {
             
             // Analizar llamadas a funciones
             diagnosticos.push(...this.analizar_llamadas_funciones(linea, numero_linea));
+
+            // Advertir métodos deprecados imprimir*
+            diagnosticos.push(...this.analizar_deprecados_imprimir(linea, numero_linea));
         }
 
         // Analizar estructura general del documento
@@ -40,20 +43,43 @@ export class DiagnosticadorQuetzal {
     }
 
     /**
+     * Marca advertencia para métodos imprimir* deprecados y sugiere consola.*
+     */
+    private analizar_deprecados_imprimir(linea: string, numero_linea: number): vscode.Diagnostic[] {
+        const ds: vscode.Diagnostic[] = [];
+        const regex = /\b(imprimir(?:_[\p{L}\p{N}_]+)?)\s*\(/gu;
+        let m: RegExpExecArray | null;
+        while ((m = regex.exec(linea)) !== null) {
+            const nombre = m[1];
+            const inicio = m.index;
+            const fin = inicio + nombre.length;
+            const rango = new vscode.Range(numero_linea, inicio, numero_linea, fin);
+            const d = new vscode.Diagnostic(
+                rango,
+                `Método deprecado: ${nombre}. Usa consola.mostrar(...), consola.mostrar_error(...), consola.mostrar_advertencia(...), consola.mostrar_exito(...), consola.mostrar_informacion(...)`,
+                vscode.DiagnosticSeverity.Warning
+            );
+            ds.push(d);
+        }
+        return ds;
+    }
+
+    /**
      * Inicializa el vocabulario del lenguaje
      */
     private inicializar_vocabulario(): void {
         this.palabras_reservadas = new Set([
             'si', 'sino', 'mientras', 'para', 'hacer', 'romper', 'continuar',
             'retornar', 'en', 'intentar', 'atrapar', 'finalmente', 'lanzar',
+            'capturar',
             'función', 'funcion', 'fn', 'objeto', 'nuevo', 'ambiente', 'libre',
             'importar', 'exportar', 'desde', 'como', 'asíncrono', 'asincrono', 'esperar',
-            'y', 'o', 'mut', 'público', 'publico', 'privado', 'tipo', 'excepción', 'excepcion'
+            'y', 'o', 'mut', 'var', 'público', 'publico', 'privado', 'tipo', 'excepción', 'excepcion'
         ]);
 
         this.tipos_datos = new Set([
-            'vacío', 'vacio', 'entero', 'número', 'numero', 'cadena', 'bool', 'lista', 'jsn',
-            'verdadero', 'falso'
+            'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'cadena', 'log', 'bool', 'lista', 'jsn',
+            'verdadero', 'falso', 'nulo'
         ]);
     }
 
@@ -134,7 +160,7 @@ export class DiagnosticadorQuetzal {
         const linea_limpia = linea.trim();
 
         // Regex para detectar declaraciones de variables
-        const regex_declaracion = /^(entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/;
+    const regex_declaracion = /^(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+((?:mut|var)\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u;
         const coincidencia = linea_limpia.match(regex_declaracion);
 
         if (coincidencia) {
@@ -165,8 +191,8 @@ export class DiagnosticadorQuetzal {
         const diagnosticos: vscode.Diagnostic[] = [];
         
         // Regex para detectar definiciones de funciones (tanto nuevas como legacy)
-        const regex_funcion_nueva = /^(entero|número|numero|cadena|bool|lista|jsn|vacio|vacío)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/;
-        const regex_funcion_legacy = /(?:función|funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/;
+    const regex_funcion_nueva = /^(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
+    const regex_funcion_legacy = /(?:función|funcion|fn)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
         
         let coincidencia = linea.match(regex_funcion_nueva) || linea.match(regex_funcion_legacy);
 
