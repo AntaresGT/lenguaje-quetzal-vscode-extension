@@ -35,6 +35,11 @@
     "publisher": "antaresgt",
     "displayLanguage": "es",
     "main": "./out/extension.js",
+    "activationEvents": [
+        "onLanguage:quetzal",
+        "onCommand:quetzal.formatear_documento",
+        "onCommand:quetzal.ejecutar_archivo"
+    ],
     "contributes": {
         "languages": [
             {

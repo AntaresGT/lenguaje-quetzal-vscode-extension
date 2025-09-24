@@ -1,21 +1,20 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
-import { ServidorLenguajeQuetzal } from './servidor_lenguaje';
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { FormateadorQuetzal } from './formateador';
-import { ProveedorCompletado } from './proveedor_completado';
 import { DiagnosticadorQuetzal } from './diagnosticador';
+
+let clienteLenguaje: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extensión Lenguaje Quetzal activada');
 
-    // Inicializar servidor de lenguaje
-    const servidor_lenguaje = new ServidorLenguajeQuetzal();
-    
+    // Inicializar servidor de lenguaje con implementación LSP
+    inicializar_servidor_lenguaje(context);
+
     // Inicializar formateador
     const formateador = new FormateadorQuetzal();
-    
-    // Inicializar proveedor de autocompletado
-    const proveedor_completado = new ProveedorCompletado(servidor_lenguaje);
-    
+
     // Inicializar diagnosticador
     const diagnosticador = new DiagnosticadorQuetzal();
 
@@ -50,25 +49,6 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // Registrar proveedor de autocompletado
-    const proveedor_completado_registrado = vscode.languages.registerCompletionItemProvider(
-        'quetzal',
-        proveedor_completado,
-        '.', '(', ' '
-    );
-
-    // Registrar proveedor de hover información
-    const proveedor_hover = vscode.languages.registerHoverProvider('quetzal', {
-        provideHover(document, position, token) {
-            const palabra = document.getWordRangeAtPosition(position);
-            if (palabra) {
-                const texto_palabra = document.getText(palabra);
-                return proveedor_completado.obtener_informacion_hover(texto_palabra);
-            }
-            return null;
-        }
-    });
-
     // Registrar diagnosticador para errores de sintaxis
     const coleccion_diagnosticos = vscode.languages.createDiagnosticCollection('quetzal');
     
@@ -98,8 +78,6 @@ export function activate(context: vscode.ExtensionContext) {
         comando_formatear,
         comando_ejecutar,
         proveedor_formato,
-        proveedor_completado_registrado,
-        proveedor_hover,
         coleccion_diagnosticos,
         cambio_documento,
         apertura_documento
@@ -110,4 +88,46 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate() {
     console.log('Extensión Lenguaje Quetzal desactivada');
+    if (clienteLenguaje) {
+        clienteLenguaje.stop();
+    }
+}
+
+function inicializar_servidor_lenguaje(context: vscode.ExtensionContext): void {
+    const rutaServidor = context.asAbsolutePath(path.join('out', 'servidor', 'servidor.js'));
+    const rutaEjemplos = context.asAbsolutePath(path.join('recursos', 'ejemplos'));
+
+    const opcionesServidor: ServerOptions = {
+        run: {
+            module: rutaServidor,
+            transport: TransportKind.ipc
+        },
+        debug: {
+            module: rutaServidor,
+            transport: TransportKind.ipc,
+            options: {
+                execArgv: ['--nolazy', '--inspect=6009']
+            }
+        }
+    };
+
+    const opcionesCliente: LanguageClientOptions = {
+        documentSelector: [{ scheme: 'file', language: 'quetzal' }],
+        initializationOptions: {
+            rutaEjemplos
+        },
+        synchronize: {
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.qz')
+        }
+    };
+
+    clienteLenguaje = new LanguageClient(
+        'quetzalLenguajeServidor',
+        'Servidor de Lenguaje Quetzal',
+        opcionesServidor,
+        opcionesCliente
+    );
+
+    clienteLenguaje.start();
+    context.subscriptions.push(clienteLenguaje);
 }
