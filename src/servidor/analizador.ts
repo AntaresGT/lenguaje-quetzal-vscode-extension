@@ -1,7 +1,10 @@
 import * as path from 'path';
-
-const IDENTIFICADOR = String.raw`[\p{L}_][\p{L}\p{N}_]*`;
-const PATRON_TIPO = String.raw`(?:entero|número|numero|texto|log|lista\s*<\s*[^>]+?\s*>|lista|jsn|vacio|vacío|excepción|excepcion|[A-Z][\p{L}\p{N}_]*)`;
+import { IDENTIFICADOR, PATRON_TIPO, limpiarComentarios } from '../compartido/patrones';
+import {
+    MiembroObjetoDefinido,
+    ObjetoDefinido,
+    analizarObjetosDesdeTextoLimpio
+} from '../compartido/objetos';
 
 export interface FuncionAnalizada {
     nombre: string;
@@ -14,9 +17,9 @@ export interface VariableAnalizada {
     tipo: string;
 }
 
-export interface ObjetoAnalizado {
-    nombre: string;
-}
+export type MiembroObjetoAnalizado = MiembroObjetoDefinido;
+
+export type ObjetoAnalizado = ObjetoDefinido;
 
 export interface ExportacionAnalizada {
     nombre: string;
@@ -36,11 +39,6 @@ export interface AnalisisDocumento {
     exportaciones: ExportacionAnalizada[];
     importaciones: ImportacionAnalizada[];
     identificadores: Map<string, string>;
-}
-
-export function limpiarComentarios(texto: string): string {
-    const sinComentariosLinea = texto.replace(/\/\/.*$/gm, '');
-    return sinComentariosLinea.replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
 function extraerNombreParametro(parametro: string): string {
@@ -72,20 +70,17 @@ export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
     const textoLimpio = limpiarComentarios(texto);
     const funciones: FuncionAnalizada[] = [];
     const variables: VariableAnalizada[] = [];
-    const objetos: ObjetoAnalizado[] = [];
+    const objetos: ObjetoAnalizado[] = analizarObjetosDesdeTextoLimpio(textoLimpio);
     const exportaciones: ExportacionAnalizada[] = [];
     const importaciones: ImportacionAnalizada[] = [];
     const identificadores = new Map<string, string>();
 
-    const regexObjeto = new RegExp(String.raw`\bobjeto\s+(${IDENTIFICADOR})\s*\{`, 'gu');
-    let coincidencia: RegExpExecArray | null;
-    while ((coincidencia = regexObjeto.exec(textoLimpio)) !== null) {
-        const nombre = coincidencia[1];
-        objetos.push({ nombre });
-        identificadores.set(nombre, nombre);
+    for (const objeto of objetos) {
+        identificadores.set(objeto.nombre, objeto.nombre);
     }
 
     const regexFuncionNueva = new RegExp(String.raw`\b(${PATRON_TIPO})\s+(${IDENTIFICADOR})\s*\(([^)]*)\)\s*\{`, 'gu');
+    let coincidencia: RegExpExecArray | null;
     while ((coincidencia = regexFuncionNueva.exec(textoLimpio)) !== null) {
         const tipo = normalizarTipo(coincidencia[1]);
         const nombre = coincidencia[2];
@@ -96,7 +91,6 @@ export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
         funciones.push({ nombre, tipoRetorno: tipo, parametros });
         identificadores.set(nombre, tipo);
     }
-
 
     const regexVariable = new RegExp(String.raw`\b(${PATRON_TIPO})\s+(?:var\s+)?(${IDENTIFICADOR})\b`, 'gu');
     while ((coincidencia = regexVariable.exec(textoLimpio)) !== null) {

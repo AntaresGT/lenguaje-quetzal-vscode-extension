@@ -25,11 +25,13 @@ import {
     PALABRAS_RESERVADAS,
     TIPOS_BÁSICOS
 } from './datos_base';
+import { fusionarMiembros } from '../compartido/objetos';
 import {
     AnalisisDocumento,
     ExportacionAnalizada,
     FuncionAnalizada,
     ImportacionAnalizada,
+    MiembroObjetoAnalizado,
     ObjetoAnalizado,
     VariableAnalizada,
     analizarTextoQuetzal
@@ -146,8 +148,17 @@ function agregarAnalisisEjemplo(registro: RegistroAnalisis): void {
         }
     }
     for (const objeto of analisis.objetos) {
-        if (!conocimientoEjemplos.objetos.has(objeto.nombre)) {
-            conocimientoEjemplos.objetos.set(objeto.nombre, objeto);
+        const existente = conocimientoEjemplos.objetos.get(objeto.nombre);
+        if (existente) {
+            fusionarMiembros(existente, objeto);
+        } else {
+            conocimientoEjemplos.objetos.set(objeto.nombre, {
+                nombre: objeto.nombre,
+                miembros: objeto.miembros.map(miembro => ({
+                    ...miembro,
+                    parametros: miembro.parametros ? [...miembro.parametros] : undefined
+                }))
+            });
         }
     }
     for (const variable of analisis.variables) {
@@ -312,6 +323,81 @@ function normalizarTipoBase(tipo?: string): string | undefined {
     return limpio;
 }
 
+function extraerNombreObjeto(tipo?: string): string | undefined {
+    if (!tipo) {
+        return undefined;
+    }
+    const limpio = tipo.trim();
+    if (!limpio || limpio.includes('<') || limpio.includes('.')) {
+        return undefined;
+    }
+    if (!/^[A-Z]/u.test(limpio)) {
+        return undefined;
+    }
+    if (!new RegExp(`^${IDENTIFICADOR_REGEX}$`, 'u').test(limpio)) {
+        return undefined;
+    }
+    return limpio;
+}
+
+function obtenerObjetoDesdeAnalisis(analisis: AnalisisDocumento, nombre: string): ObjetoAnalizado | undefined {
+    return analisis.objetos.find(obj => obj.nombre === nombre);
+}
+
+function obtenerObjetoDefinido(nombre: string, analisis: AnalisisDocumento): ObjetoAnalizado | undefined {
+    const local = obtenerObjetoDesdeAnalisis(analisis, nombre);
+    if (local) {
+        return local;
+    }
+    for (const registro of archivosUsuario.values()) {
+        const encontrado = registro.analisis.objetos.find(obj => obj.nombre === nombre);
+        if (encontrado) {
+            return encontrado;
+        }
+    }
+    return conocimientoEjemplos.objetos.get(nombre);
+}
+
+function crearItemMiembroObjeto(
+    objeto: ObjetoAnalizado,
+    miembro: MiembroObjetoAnalizado,
+    esEstatico: boolean
+): CompletionItem {
+    const detalleBase = esEstatico ? `Miembro libre de ${objeto.nombre}` : `Miembro de ${objeto.nombre}`;
+    if (miembro.clase === 'metodo') {
+        const parametros = miembro.parametros ?? [];
+        const placeholders = parametros
+            .map((parametro, indice) => '${' + (indice + 1) + ':' + parametro + '}')
+            .join(', ');
+        const insertable = parametros.length
+            ? `${miembro.nombre}(${placeholders})`
+            : `${miembro.nombre}()`;
+        const item: CompletionItem = {
+            label: miembro.nombre,
+            kind: CompletionItemKind.Method,
+            detail: miembro.retorno ? `${detalleBase} → ${miembro.retorno}` : detalleBase,
+            insertText: insertable,
+            insertTextFormat: InsertTextFormat.Snippet
+        };
+        return item;
+    }
+
+    const item: CompletionItem = {
+        label: miembro.nombre,
+        kind: CompletionItemKind.Property,
+        detail: miembro.tipo ? `${detalleBase} (${miembro.tipo})` : detalleBase
+    };
+    return item;
+}
+
+function sugerirMiembrosObjeto(objeto: ObjetoAnalizado, esEstatico: boolean): CompletionItem[] {
+    return objeto.miembros
+        .filter(miembro => miembro.alcance !== 'privado')
+        .filter(miembro => (esEstatico ? miembro.esLibre : !miembro.esLibre))
+        .filter(miembro => miembro.clase !== 'constructor')
+        .map(miembro => crearItemMiembroObjeto(objeto, miembro, esEstatico));
+}
+
 function obtenerExportacionesDeModulo(modulo: string, documento: TextDocument): ExportacionAnalizada[] | undefined {
     if (conocimientoEjemplos.exportaciones.has(modulo)) {
         return conocimientoEjemplos.exportaciones.get(modulo);
@@ -364,6 +450,14 @@ function obtenerTipoImportado(nombre: string, analisis: AnalisisDocumento, docum
 }
 
 function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, identificador: string): CompletionItem[] {
+    const objetoDirecto = obtenerObjetoDefinido(identificador, analisis);
+    if (objetoDirecto) {
+        const estaticos = sugerirMiembrosObjeto(objetoDirecto, true);
+        if (estaticos.length > 0) {
+            return estaticos;
+        }
+    }
+
     let tipo = analisis.identificadores.get(identificador);
     if (!tipo) {
         tipo = obtenerTipoImportado(identificador, analisis, documento);
@@ -371,6 +465,18 @@ function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, id
     if (!tipo && identificador === 'consola') {
         tipo = 'consola';
     }
+
+    const nombreObjeto = extraerNombreObjeto(tipo);
+    if (nombreObjeto) {
+        const objeto = obtenerObjetoDefinido(nombreObjeto, analisis);
+        if (objeto) {
+            const miembros = sugerirMiembrosObjeto(objeto, false);
+            if (miembros.length > 0) {
+                return miembros;
+            }
+        }
+    }
+
     const base = normalizarTipoBase(tipo);
     if (!base) {
         return [];

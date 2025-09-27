@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ServidorLenguajeQuetzal, TipoInfo } from './servidor_lenguaje';
+import { MiembroObjetoDefinido } from './compartido/objetos';
 
 const IDENT_UNICODE = /[\p{L}_][\p{L}\p{N}_]*/u;
 
@@ -139,6 +140,31 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         return item;
     }
 
+    private crear_items_para_miembros(
+        objeto: string,
+        miembros: MiembroObjetoDefinido[],
+        estatico: boolean
+    ): vscode.CompletionItem[] {
+        const detalleBase = estatico ? `Miembro libre de ${objeto}` : `Miembro de ${objeto}`;
+        return miembros.map(miembro => {
+            if (miembro.clase === 'metodo') {
+                const parametros = miembro.parametros ?? [];
+                const placeholders = parametros
+                    .map((parametro, indice) => '${' + (indice + 1) + ':' + parametro + '}')
+                    .join(', ');
+                const insertable = parametros.length ? `${miembro.nombre}(${placeholders})` : `${miembro.nombre}()`;
+                const item = new vscode.CompletionItem(miembro.nombre, vscode.CompletionItemKind.Method);
+                item.detail = miembro.retorno ? `${detalleBase} → ${miembro.retorno}` : detalleBase;
+                item.insertText = new vscode.SnippetString(insertable);
+                return item;
+            }
+
+            const item = new vscode.CompletionItem(miembro.nombre, vscode.CompletionItemKind.Property);
+            item.detail = miembro.tipo ? `${detalleBase} (${miembro.tipo})` : detalleBase;
+            return item;
+        });
+    }
+
     /**
      * Obtiene completados basados en el contexto actual
      */
@@ -179,16 +205,25 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         if (!match) {
             // Puede ser literal o expresión: usar heurística del servidor
             const tipoExpr = this.servidor.tipo_de_cadena(document, antesDelPunto);
-            const metodos = this.servidor.metodos_por_tipo(tipoExpr);
-            for (const m of metodos) {
-                const ci = new vscode.CompletionItem(m.nombre, vscode.CompletionItemKind.Method);
-                ci.detail = m.detalle ? `Método (${m.detalle})` : 'Método';
-                if (m.nombre.includes('(')) ci.insertText = new vscode.SnippetString(m.nombre);
-                items.push(ci);
+            if (tipoExpr.nombreObjeto) {
+                const miembros = this.servidor.miembros_objeto(document, tipoExpr.nombreObjeto, false);
+                items.push(...this.crear_items_para_miembros(tipoExpr.nombreObjeto, miembros, false));
+            } else {
+                const metodos = this.servidor.metodos_por_tipo(tipoExpr);
+                for (const m of metodos) {
+                    const ci = new vscode.CompletionItem(m.nombre, vscode.CompletionItemKind.Method);
+                    ci.detail = m.detalle ? `Método (${m.detalle})` : 'Método';
+                    if (m.nombre.includes('(')) ci.insertText = new vscode.SnippetString(m.nombre);
+                    items.push(ci);
+                }
             }
             return items;
         }
         const nombreIdent = match[0];
+        const miembrosEstaticos = this.servidor.miembros_objeto(document, nombreIdent, true);
+        if (miembrosEstaticos.length > 0) {
+            return this.crear_items_para_miembros(nombreIdent, miembrosEstaticos, true);
+        }
         // Sugerencias para consola.*
         if (nombreIdent === 'consola') {
             const metodosConsola = [
@@ -211,6 +246,10 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         }
         const tipo = this.servidor.tipo_de_identificador(document, nombreIdent);
         if (!tipo) return items;
+        if (tipo.nombreObjeto) {
+            const miembros = this.servidor.miembros_objeto(document, tipo.nombreObjeto, false);
+            items.push(...this.crear_items_para_miembros(tipo.nombreObjeto, miembros, false));
+        }
         const metodos = this.servidor.metodos_por_tipo(tipo);
         for (const m of metodos) {
             const ci = new vscode.CompletionItem(m.nombre, vscode.CompletionItemKind.Method);

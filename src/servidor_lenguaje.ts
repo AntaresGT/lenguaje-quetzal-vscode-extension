@@ -1,24 +1,72 @@
 import * as vscode from 'vscode';
 import { METODOS_POR_TIPO } from './compartido/metodos';
+import { limpiarComentarios } from './compartido/patrones';
+import { MiembroObjetoDefinido, ObjetoDefinido, analizarObjetosDesdeTextoLimpio } from './compartido/objetos';
 
 // Representación mínima de tipos para Quetzal
-export type TipoBase = 'entero' | 'numero' | 'número' | 'texto' | 'log' | 'lista' | 'jsn' | 'vacio' | 'vacío' | 'desconocido';
+export type TipoBase =
+    | 'entero'
+    | 'numero'
+    | 'número'
+    | 'texto'
+    | 'log'
+    | 'lista'
+    | 'jsn'
+    | 'vacio'
+    | 'vacío'
+    | 'objeto'
+    | 'desconocido';
 
 export interface TipoInfo {
     base: TipoBase;
     generico?: TipoInfo; // Para lista<tipo>
+    nombreObjeto?: string;
 }
 
 const IDENT_UNICODE = String.raw`[\p{L}_][\p{L}\p{N}_]*`;
 
+interface CacheObjetosEntrada {
+    version: number;
+    objetos: ObjetoDefinido[];
+}
+
 export class ServidorLenguajeQuetzal {
+    private cacheObjetos = new WeakMap<vscode.TextDocument, CacheObjetosEntrada>();
+
     constructor() {
         console.log('Servidor de Lenguaje Quetzal inicializado');
     }
 
+    private obtenerObjetos(document: vscode.TextDocument): ObjetoDefinido[] {
+        const existente = this.cacheObjetos.get(document);
+        if (existente && existente.version === document.version) {
+            return existente.objetos;
+        }
+        const textoLimpio = limpiarComentarios(document.getText());
+        const objetos = analizarObjetosDesdeTextoLimpio(textoLimpio);
+        this.cacheObjetos.set(document, { version: document.version, objetos });
+        return objetos;
+    }
+
+    private obtenerObjeto(document: vscode.TextDocument, nombre: string): ObjetoDefinido | undefined {
+        return this.obtenerObjetos(document).find(obj => obj.nombre === nombre);
+    }
+
+    private miembrosObjeto(document: vscode.TextDocument, nombre: string, estatico: boolean): MiembroObjetoDefinido[] {
+        const objeto = this.obtenerObjeto(document, nombre);
+        if (!objeto) {
+            return [];
+        }
+        return objeto.miembros
+            .filter(miembro => miembro.alcance !== 'privado')
+            .filter(miembro => (estatico ? miembro.esLibre : !miembro.esLibre))
+            .filter(miembro => miembro.clase !== 'constructor');
+    }
+
     // Normaliza sinónimos a un tipo canónico
     normalizarTipo(tipo: string): TipoInfo {
-        const t = tipo.normalize('NFC').toLowerCase();
+        const original = tipo.trim();
+        const t = original.normalize('NFC').toLowerCase();
         if (t.startsWith('lista')) {
             const m = t.match(/^lista\s*<\s*([^>]+)\s*>/u);
             if (m) {
@@ -26,6 +74,9 @@ export class ServidorLenguajeQuetzal {
                 return { base: 'lista', generico: interno };
             }
             return { base: 'lista' };
+        }
+        if (/^[A-Z]/u.test(original) && new RegExp(`^${IDENT_UNICODE}$`, 'u').test(original)) {
+            return { base: 'objeto', nombreObjeto: original };
         }
     if (t === 'número' || t === 'numero') return { base: 'numero' };
     if (t === 'vacío' || t === 'vacio') return { base: 'vacio' };
@@ -197,6 +248,9 @@ export class ServidorLenguajeQuetzal {
 
     /** Lista de métodos disponibles por tipo base (según ejemplos) */
     metodos_por_tipo(tipo: TipoInfo): { nombre: string; snippet?: string; detalle?: string }[] {
+        if (tipo.base === 'objeto') {
+            return [];
+        }
         const base = this.normalizarTipo(tipo.base).base;
         const definiciones = METODOS_POR_TIPO[base];
         if (!definiciones) {
@@ -206,6 +260,13 @@ export class ServidorLenguajeQuetzal {
             nombre: def.nombre,
             snippet: def.snippet,
             detalle: def.retorno
+        }));
+    }
+
+    miembros_objeto(document: vscode.TextDocument, nombre: string, estatico: boolean): MiembroObjetoDefinido[] {
+        return this.miembrosObjeto(document, nombre, estatico).map(miembro => ({
+            ...miembro,
+            parametros: miembro.parametros ? [...miembro.parametros] : undefined
         }));
     }
 }
