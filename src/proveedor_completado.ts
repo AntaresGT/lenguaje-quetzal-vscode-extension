@@ -65,13 +65,13 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('sino', 'Condicional sino'),
             this.crear_item_palabra_reservada('mientras', 'Bucle mientras'),
             this.crear_item_palabra_reservada('para', 'Bucle para'),
+            this.crear_item_palabra_reservada('en', 'Iterar sobre una colección'),
+            this.crear_item_palabra_reservada('cada', 'Iterar asignando nombre al elemento'),
             this.crear_item_palabra_reservada('hacer', 'Bucle hacer-mientras'),
             this.crear_item_palabra_reservada('romper', 'Romper bucle'),
             this.crear_item_palabra_reservada('continuar', 'Continuar bucle'),
             this.crear_item_palabra_reservada('retornar', 'Retornar valor'),
             this.crear_item_palabra_reservada('var', 'Variable mutable'),
-            this.crear_item_palabra_reservada('función', 'Definir función (con tilde)'),
-            this.crear_item_palabra_reservada('funcion', 'Definir función'),
             this.crear_item_palabra_reservada('objeto', 'Definir objeto'),
             this.crear_item_palabra_reservada('nuevo', 'Crear nueva instancia'),
             this.crear_item_palabra_reservada('ambiente', 'Referencia al objeto actual'),
@@ -86,7 +86,6 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('lanzar', 'Lanzar excepción'),
             this.crear_item_palabra_reservada('y', 'Operador lógico AND'),
             this.crear_item_palabra_reservada('o', 'Operador lógico OR'),
-            this.crear_item_palabra_reservada('mut', 'Modificador mutable (legacy)'),
             this.crear_item_palabra_reservada('público', 'Modificador público (con tilde)'),
             this.crear_item_palabra_reservada('publico', 'Modificador público'),
             this.crear_item_palabra_reservada('privado', 'Modificador privado'),
@@ -106,11 +105,11 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_tipo('número', 'Número decimal (con tilde)'),
             this.crear_item_tipo('numero', 'Número decimal'),
             this.crear_item_tipo('texto', 'Cadena de texto'),
-            this.crear_item_tipo('cadena', 'Cadena de texto (legacy)'),
             this.crear_item_tipo('log', 'Valor lógico'),
-            this.crear_item_tipo('bool', 'Valor booleano (legacy)'),
             this.crear_item_tipo('lista', 'Lista de elementos'),
             this.crear_item_tipo('jsn', 'Objeto JSON'),
+            this.crear_item_tipo('excepcion', 'Tipo de excepción'),
+            this.crear_item_tipo('excepción', 'Tipo de excepción (con tilde)'),
             this.crear_item_valor('verdadero', 'Valor booleano verdadero'),
             this.crear_item_valor('falso', 'Valor booleano falso'),
             this.crear_item_valor('nulo', 'Valor nulo para cualquier tipo')
@@ -301,14 +300,10 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_funciones_documento(document: vscode.TextDocument): string[] {
         const funciones: string[] = [];
         const texto = document.getText();
-        const regexNueva = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
-        const regex = new RegExp(String.raw`(?:función|funcion|fn)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
+        const regexNueva = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
         let match;
         while ((match = regexNueva.exec(texto)) !== null) {
             funciones.push(match[2]);
-        }
-        while ((match = regex.exec(texto)) !== null) {
-            funciones.push(match[1]);
         }
         return [...new Set(funciones)]; // Eliminar duplicados
     }
@@ -319,7 +314,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_variables_documento(document: vscode.TextDocument): string[] {
         const variables: string[] = [];
         const texto = document.getText();
-        const regex = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=`, 'ug');
+    const regex = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=`, 'ug');
         let match;
         while ((match = regex.exec(texto)) !== null) {
             variables.push(match[2]);

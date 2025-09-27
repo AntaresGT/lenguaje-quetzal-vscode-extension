@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { METODOS_POR_TIPO } from './compartido/metodos';
 
 // Representación mínima de tipos para Quetzal
 export type TipoBase = 'entero' | 'numero' | 'número' | 'texto' | 'log' | 'lista' | 'jsn' | 'vacio' | 'vacío' | 'desconocido';
@@ -26,10 +27,9 @@ export class ServidorLenguajeQuetzal {
             }
             return { base: 'lista' };
         }
-        if (t === 'número' || t === 'numero') return { base: 'numero' };
-        if (t === 'vacío' || t === 'vacio') return { base: 'vacio' };
-        if (t === 'cadena') return { base: 'texto' };
-        if (t === 'bool' || t === 'log') return { base: 'log' };
+    if (t === 'número' || t === 'numero') return { base: 'numero' };
+    if (t === 'vacío' || t === 'vacio') return { base: 'vacio' };
+    if (t === 'log') return { base: 'log' };
         if (t === 'entero') return { base: 'entero' };
         if (t === 'texto') return { base: 'texto' };
         if (t === 'jsn') return { base: 'jsn' };
@@ -99,10 +99,10 @@ export class ServidorLenguajeQuetzal {
      * Detecta si la posición actual está dentro de una función
      */
     private detectar_contexto_funcion(document: vscode.TextDocument, position: vscode.Position): boolean {
-        const REGEX_DEF_FUNC = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+${IDENT_UNICODE}\s*\(`, 'u');
+        const REGEX_DEF_FUNC = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+${IDENT_UNICODE}\s*\(`, 'u');
         for (let i = position.line; i >= 0; i--) {
             const linea = document.lineAt(i).text.trim();
-            if (linea.includes('función ') || linea.includes('funcion ') || linea.includes('fn ') || REGEX_DEF_FUNC.test(linea)) {
+            if (REGEX_DEF_FUNC.test(linea)) {
                 return true;
             }
             if (linea.includes('objeto ')) {
@@ -137,7 +137,7 @@ export class ServidorLenguajeQuetzal {
         const tipos = new Map<string, TipoInfo>();
         const texto = document.getText();
         // Declaración de variables: tipo [<gen>] [var ] nombre = ...
-        const REGEX_DECL = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista\s*<\s*[^>]+\s*>|lista|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
+    const REGEX_DECL = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista\s*<\s*[^>]+\s*>|lista|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
         let m: RegExpExecArray | null;
         while ((m = REGEX_DECL.exec(texto)) !== null) {
             const tipo = this.normalizarTipo(m[1]);
@@ -159,14 +159,10 @@ export class ServidorLenguajeQuetzal {
     obtener_funciones_documento(document: vscode.TextDocument): string[] {
         const funciones: string[] = [];
         const texto_completo = document.getText();
-        const REGEX_FUNC_NUEVA = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+(${IDENT_UNICODE})\s*\(`, 'ug');
-        const REGEX_FUNC_LEG = new RegExp(String.raw`(?:función|funcion|fn)\s+(${IDENT_UNICODE})\s*\(`, 'ug');
+        const REGEX_FUNC_NUEVA = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+(${IDENT_UNICODE})\s*\(`, 'ug');
         let coincidencia: RegExpExecArray | null;
         while ((coincidencia = REGEX_FUNC_NUEVA.exec(texto_completo)) !== null) {
             funciones.push(coincidencia[2]);
-        }
-        while ((coincidencia = REGEX_FUNC_LEG.exec(texto_completo)) !== null) {
-            funciones.push(coincidencia[1]);
         }
         return funciones;
     }
@@ -177,7 +173,7 @@ export class ServidorLenguajeQuetzal {
     obtener_variables_documento(document: vscode.TextDocument): string[] {
         const variables: string[] = [];
         const texto_completo = document.getText();
-        const REGEX_VARS = new RegExp(String.raw`\b(entero|número|numero|texto|cadena|log|bool|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
+    const REGEX_VARS = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
         let coincidencia: RegExpExecArray | null;
         while ((coincidencia = REGEX_VARS.exec(texto_completo)) !== null) {
             variables.push(coincidencia[2]);
@@ -202,98 +198,14 @@ export class ServidorLenguajeQuetzal {
     /** Lista de métodos disponibles por tipo base (según ejemplos) */
     metodos_por_tipo(tipo: TipoInfo): { nombre: string; snippet?: string; detalle?: string }[] {
         const base = this.normalizarTipo(tipo.base).base;
-        if (base === 'texto') {
-            return [
-                { nombre: 'longitud()', detalle: 'entero' },
-                { nombre: 'entero()', detalle: 'entero' },
-                { nombre: 'numero()', detalle: 'número' },
-                { nombre: 'mayusculas()', detalle: 'texto' },
-                { nombre: 'minusculas()', detalle: 'texto' },
-                { nombre: 'capitalizar()', detalle: 'texto' },
-                { nombre: 'titulo()', detalle: 'texto' },
-                { nombre: 'recortar()', detalle: 'texto' },
-                { nombre: 'recortar_inicio()', detalle: 'texto' },
-                { nombre: 'recortar_final()', detalle: 'texto' },
-                { nombre: 'contiene(${1:subtexto})', detalle: 'log' },
-                { nombre: 'empieza_con(${1:prefijo})', detalle: 'log' },
-                { nombre: 'termina_con(${1:sufijo})', detalle: 'log' },
-                { nombre: 'encontrar(${1:subtexto})', detalle: 'entero' },
-                { nombre: 'buscar_ultimo(${1:subtexto})', detalle: 'entero' },
-                { nombre: 'reemplazar(${1:buscar}, ${2:reemplazo})', detalle: 'texto' },
-                { nombre: 'reemplazar_primero(${1:buscar}, ${2:reemplazo})', detalle: 'texto' },
-                { nombre: 'dividir(${1:separador})', detalle: 'lista<texto>' },
-                { nombre: 'partir_lineas()', detalle: 'lista<texto>' },
-                { nombre: 'repetir(${1:veces})', detalle: 'texto' },
-                { nombre: 'subtexto(${1:inicio}, ${2:fin})', detalle: 'texto' },
-                { nombre: 'izquierda(${1:n})', detalle: 'texto' },
-                { nombre: 'derecha(${1:n})', detalle: 'texto' },
-                { nombre: 'es_numero()', detalle: 'log' },
-                { nombre: 'es_entero()', detalle: 'log' },
-                { nombre: 'es_alfanumerico()', detalle: 'log' },
-                { nombre: 'a_base64()', detalle: 'texto' },
-                { nombre: 'decodificar_base64()', detalle: 'texto' },
-                { nombre: 'a_url()', detalle: 'texto' },
-                { nombre: 'decodificar_url()', detalle: 'texto' },
-                { nombre: 'igual_sin_caso(${1:otro})', detalle: 'log' },
-                { nombre: 'jsn()', detalle: 'jsn' }
-            ];
+        const definiciones = METODOS_POR_TIPO[base];
+        if (!definiciones) {
+            return [];
         }
-        if (base === 'lista') {
-            return [
-                { nombre: 'longitud()', detalle: 'entero' },
-                { nombre: 'esta_vacia()', detalle: 'log' },
-                { nombre: 'agregar(${1:valor})', detalle: 'vacio' },
-                { nombre: 'insertar(${1:indice}, ${2:valor})', detalle: 'vacio' },
-                { nombre: 'remover(${1:valor})', detalle: 'vacio' },
-                { nombre: 'quitar_en(${1:indice})', detalle: 'vacio' },
-                { nombre: 'limpiar()', detalle: 'vacio' },
-                { nombre: 'contiene(${1:valor})', detalle: 'log' },
-                { nombre: 'buscar(${1:valor})', detalle: 'entero' },
-                { nombre: 'buscar_ultimo(${1:valor})', detalle: 'entero' },
-                { nombre: 'contar(${1:valor})', detalle: 'entero' },
-                { nombre: 'ordenar()', detalle: 'vacio' },
-                { nombre: 'ordenar_descendente()', detalle: 'vacio' },
-                { nombre: 'ordenado()', detalle: 'lista' },
-                { nombre: 'invertir()', detalle: 'vacio' },
-                { nombre: 'primero()', detalle: 'elemento' },
-                { nombre: 'ultimo()', detalle: 'elemento' },
-                { nombre: 'tomar(${1:n})', detalle: 'lista' },
-                { nombre: 'saltar(${1:n})', detalle: 'lista' },
-                { nombre: 'sublista(${1:inicio}, ${2:fin})', detalle: 'lista' },
-                { nombre: 'sumar()', detalle: 'numero' },
-                { nombre: 'promedio()', detalle: 'numero' },
-                { nombre: 'maximo()', detalle: 'entero' },
-                { nombre: 'minimo()', detalle: 'entero' },
-                { nombre: 'unir(${1:separador})', detalle: 'texto' },
-                { nombre: 'concatenar(${1:otra_lista})', detalle: 'lista' },
-                { nombre: 'extender(${1:otra_lista})', detalle: 'vacio' },
-                { nombre: 'texto()', detalle: 'texto' },
-                { nombre: 'json()', detalle: 'texto' },
-                { nombre: 'logico()', detalle: 'log' }
-            ];
-        }
-        if (base === 'jsn') {
-            return [
-                { nombre: 'contiene_clave(${1:clave})', detalle: 'log' },
-                { nombre: 'claves()', detalle: 'lista<texto>' },
-                { nombre: 'valores()', detalle: 'lista' },
-                { nombre: 'establecer(${1:clave}, ${2:valor})', detalle: 'vacio' },
-                { nombre: 'eliminar(${1:clave})', detalle: 'vacio' },
-                { nombre: 'fusionar(${1:otro_jsn})', detalle: 'vacio' },
-                { nombre: 'texto()', detalle: 'texto' },
-                { nombre: 'texto_formateado()', detalle: 'texto' }
-            ];
-        }
-        if (base === 'entero' || base === 'numero' || base === 'número') {
-            return [
-                { nombre: 'texto()', detalle: 'texto' }
-            ];
-        }
-        if (base === 'log') {
-            return [
-                { nombre: 'texto()', detalle: 'texto' }
-            ];
-        }
-        return [];
+        return definiciones.map(def => ({
+            nombre: def.nombre,
+            snippet: def.snippet,
+            detalle: def.retorno
+        }));
     }
 }

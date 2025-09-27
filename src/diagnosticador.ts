@@ -69,16 +69,17 @@ export class DiagnosticadorQuetzal {
      */
     private inicializar_vocabulario(): void {
         this.palabras_reservadas = new Set([
-            'si', 'sino', 'mientras', 'para', 'hacer', 'romper', 'continuar',
-            'retornar', 'en', 'intentar', 'atrapar', 'finalmente', 'lanzar',
+            'si', 'sino', 'mientras', 'para', 'en', 'cada', 'hacer', 'romper', 'continuar',
+            'retornar', 'intentar', 'atrapar', 'finalmente', 'lanzar',
             'capturar',
-            'función', 'funcion', 'fn', 'objeto', 'nuevo', 'ambiente', 'libre',
+            'objeto', 'nuevo', 'ambiente', 'libre',
             'importar', 'exportar', 'desde', 'como', 'asíncrono', 'asincrono', 'esperar',
-            'y', 'o', 'mut', 'var', 'público', 'publico', 'privado', 'tipo', 'excepción', 'excepcion'
+            'y', 'o', 'var', 'público', 'publico', 'privado', 'tipo', 'excepción', 'excepcion'
         ]);
 
         this.tipos_datos = new Set([
-            'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'cadena', 'log', 'bool', 'lista', 'jsn',
+            'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'log', 'lista', 'jsn',
+            'excepción', 'excepcion',
             'verdadero', 'falso', 'nulo'
         ]);
     }
@@ -160,7 +161,7 @@ export class DiagnosticadorQuetzal {
         const linea_limpia = linea.trim();
 
         // Regex para detectar declaraciones de variables
-    const regex_declaracion = /^(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+((?:mut|var)\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u;
+        const regex_declaracion = /^(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+((?:mut|var)\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u;
         const coincidencia = linea_limpia.match(regex_declaracion);
 
         if (coincidencia) {
@@ -190,14 +191,13 @@ export class DiagnosticadorQuetzal {
     private analizar_llamadas_funciones(linea: string, numero_linea: number): vscode.Diagnostic[] {
         const diagnosticos: vscode.Diagnostic[] = [];
         
-        // Regex para detectar definiciones de funciones (tanto nuevas como legacy)
-    const regex_funcion_nueva = /^(entero|número|numero|texto|cadena|log|bool|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
-    const regex_funcion_legacy = /(?:función|funcion|fn)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
-        
-        let coincidencia = linea.match(regex_funcion_nueva) || linea.match(regex_funcion_legacy);
+        // Regex para detectar definiciones de funciones
+        const regex_funcion_nueva = /^(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
+
+        const coincidencia = linea.match(regex_funcion_nueva);
 
         if (coincidencia) {
-            const nombre_funcion = coincidencia[regex_funcion_nueva ? 2 : 1];
+            const nombre_funcion = coincidencia[2];
             
             // Ya no verificamos convención de nombres - permitimos camelCase y snake_case
             // Solo verificamos que no sean palabras reservadas

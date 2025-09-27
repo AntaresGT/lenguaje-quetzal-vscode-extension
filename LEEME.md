@@ -12,7 +12,7 @@ Una extensión completa de Visual Studio Code para el lenguaje de programación 
 
 ### ⚡ Autocompletado Inteligente
 - Sugerencias automáticas para palabras reservadas
-- Autocompletado de tipos de datos (entero, número, cadena, bool, lista, jsn)
+- Autocompletado de tipos de datos (entero, número, texto, log, lista, jsn)
 - Completado de funciones builtin del lenguaje
 - Reconocimiento automático de funciones, variables y objetos definidos por el usuario
 - Snippets predefinidos para estructuras comunes
@@ -43,8 +43,8 @@ Una extensión completa de Visual Studio Code para el lenguaje de programación 
 // Tipos básicos
 entero numero_entero = 42
 número numero_decimal = 3.14
-cadena texto = "Hola mundo"
-bool es_verdadero = verdadero
+texto saludo = "Hola mundo"
+log estado = verdadero
 lista<entero> numeros = [1, 2, 3, 4, 5]
 jsn objeto_json = {clave: "valor", numero: 123}
 vacio sin_valor
@@ -54,7 +54,7 @@ vacio sin_valor
 ```qz
 // Variables que pueden cambiar
 entero mut contador = 0
-cadena mut mensaje = "inicial"
+texto mut mensaje = "inicial"
 ```
 
 ### Funciones
@@ -65,7 +65,7 @@ entero sumar(entero a, entero b) {
 }
 
 // Función sin retorno
-vacio saludar(cadena nombre) {
+vacio saludar(texto nombre) {
     imprimir("Hola " + nombre)
 }
 ```
@@ -81,16 +81,16 @@ si (edad >= 18) {
 
 // Bucles
 mientras (contador < 10) {
-    imprimir("Contador: " + contador.cadena())
+    imprimir("Contador: " + contador.texto())
     contador++
 }
 
 para (entero i = 0; i < 5; i++) {
-    imprimir("Iteración: " + i.cadena())
+    imprimir("Iteración: " + i.texto())
 }
 
 para (elemento en lista) {
-    imprimir("Elemento: " + elemento.cadena())
+    imprimir("Elemento: " + elemento.texto())
 }
 ```
 
@@ -98,10 +98,10 @@ para (elemento en lista) {
 ```qz
 objeto Persona {
     publico:
-        cadena nombre
+        texto nombre
         entero edad
         
-        Persona(cadena n, entero e) {
+        Persona(texto n, entero e) {
             ambiente.nombre = n
             ambiente.edad = e
         }
@@ -111,7 +111,7 @@ objeto Persona {
         }
     
     privado:
-        cadena secreto = "información privada"
+        texto secreto = "información privada"
 }
 
 // Usar objeto

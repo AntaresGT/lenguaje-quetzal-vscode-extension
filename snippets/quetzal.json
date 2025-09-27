@@ -40,28 +40,28 @@
     "Declarar variable": {
         "prefix": "var",
         "body": [
-            "${1|entero,número,cadena,bool,lista,jsn|} ${2:nombreVariable} = ${3:valor}"
+            "${1|entero,número,texto,log,lista,jsn|} ${2:nombreVariable} = ${3:valor}"
         ],
         "description": "Declarar una variable en camelCase"
     },
     "Declarar variable snake_case": {
         "prefix": "var_snake",
         "body": [
-            "${1|entero,número,cadena,bool,lista,jsn|} ${2:nombre_variable} = ${3:valor}"
+            "${1|entero,número,texto,log,lista,jsn|} ${2:nombre_variable} = ${3:valor}"
         ],
         "description": "Declarar una variable en snake_case"
     },
     "Declarar variable mutable": {
         "prefix": "mut",
         "body": [
-            "${1|entero,número,cadena,bool,lista,jsn|} mut ${2:nombreVariable} = ${3:valor}"
+            "${1|entero,número,texto,log,lista,jsn|} mut ${2:nombreVariable} = ${3:valor}"
         ],
         "description": "Declarar una variable mutable en camelCase"
     },
     "Declarar variable mutable snake_case": {
         "prefix": "mut_snake",
         "body": [
-            "${1|entero,número,cadena,bool,lista,jsn|} mut ${2:nombre_variable} = ${3:valor}"
+            "${1|entero,número,texto,log,lista,jsn|} mut ${2:nombre_variable} = ${3:valor}"
         ],
         "description": "Declarar una variable mutable en snake_case"
     },
@@ -145,13 +145,13 @@
         "body": [
             "objeto ${1:NombreObjeto} {",
             "\tpublico:",
-            "\t\t${2|entero,número,cadena,bool|} ${3:propiedad}",
+            "\t\t${2|entero,número,texto,log|} ${3:propiedad}",
             "",
             "\t\t${1:NombreObjeto}() {",
             "\t\t\t${4:// Constructor}",
             "\t\t}",
             "",
-            "\t\t${5|entero,número,cadena,bool,vacio|} ${6:metodo}() {",
+            "\t\t${5|entero,número,texto,log,vacio|} ${6:metodo}() {",
             "\t\t\t${7:// Método}",
             "\t\t\tretornar ${8:valor}",
             "\t\t}",
@@ -175,7 +175,7 @@
     "Lista": {
         "prefix": "lista",
         "body": [
-            "lista<${1|entero,número,cadena,bool|}> ${2:nombre_lista} = [${3:valores}]"
+            "lista<${1|entero,número,texto,log|}> ${2:nombre_lista} = [${3:valores}]"
         ],
         "description": "Crear una lista tipada"
     },

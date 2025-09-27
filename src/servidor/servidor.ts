@@ -309,9 +309,6 @@ function normalizarTipoBase(tipo?: string): string | undefined {
     if (limpio === 'numero' || limpio === 'número') {
         return 'numero';
     }
-    if (limpio === 'bool') {
-        return 'log';
-    }
     return limpio;
 }
 

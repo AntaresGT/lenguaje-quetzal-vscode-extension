@@ -109,7 +109,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.quetzal",
-                    "match": "\\b(si|sino|mientras|para|hacer|romper|continuar|retornar|en|intentar|atrapar|finalmente|lanzar)\\b"
+                    "match": "\\b(si|sino|mientras|para|en|cada|hacer|romper|continuar|retornar|intentar|atrapar|capturar|finalmente|lanzar)\\b"
                 },
                 {
                     "name": "keyword.other.quetzal",
@@ -124,10 +124,6 @@
                     "match": "\\b(mut|público|publico|privado)\\b"
                 },
                 {
-                    "name": "entity.name.function.quetzal",
-                    "match": "\\b(función|funcion|fn)\\b"
-                },
-                {
                     "name": "storage.type.class.quetzal",
                     "match": "\\b(objeto|excepción|excepcion)\\b"
                 }
@@ -137,7 +133,7 @@
             "patterns": [
                 {
                     "name": "storage.type.quetzal",
-                    "match": "\\b(vacío|vacio|entero|número|numero|cadena|bool|lista|jsn|tipo)\\b"
+                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lista|jsn|excepción|excepcion)\\b"
                 },
                 {
                     "name": "constant.language.boolean.quetzal",
@@ -177,22 +173,10 @@
             "patterns": [
                 {
                     "name": "entity.name.function.definition.quetzal",
-                    "match": "\\b(entero|número|numero|cadena|bool|lista|jsn|vacio)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lista|jsn|excepción|excepcion)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
                     "captures": {
                         "1": {
                             "name": "storage.type.quetzal"
-                        },
-                        "2": {
-                            "name": "entity.name.function.quetzal"
-                        }
-                    }
-                },
-                {
-                    "name": "entity.name.function.definition.legacy.quetzal",
-                    "match": "\\b(funcion|fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\b",
-                    "captures": {
-                        "1": {
-                            "name": "keyword.other.quetzal"
                         },
                         "2": {
                             "name": "entity.name.function.quetzal"
@@ -218,7 +202,7 @@
             "patterns": [
                 {
                     "name": "variable.other.declaration.quetzal",
-                    "match": "\\b(entero|número|numero|cadena|bool|lista|jsn|vacio)\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?==)",
+                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lista|jsn|excepción|excepcion)\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?==)",
                     "captures": {
                         "1": {
                             "name": "storage.type.quetzal"

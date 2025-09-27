@@ -70,9 +70,9 @@
 // Tipos fundamentales
 entero edad = 25
 número altura = 1.75
-cadena nombre = "Ana García"
-bool es_estudiante = verdadero
-lista<cadena> materias = ["Matemáticas", "Programación"]
+texto nombre = "Ana García"
+log es_estudiante = verdadero
+lista<texto> materias = ["Matemáticas", "Programación"]
 jsn configuracion = {tema: "oscuro", version: "1.0"}
 vacio sin_valor
 ```
@@ -81,7 +81,7 @@ vacio sin_valor
 ```qz
 // Variables que pueden cambiar de valor
 entero mut contador = 0
-cadena mut mensaje = "texto inicial"
+texto mut mensaje = "texto inicial"
 ```
 
 ### Funciones
@@ -92,8 +92,8 @@ entero calcular_suma(entero a, entero b) {
 }
 
 // Función sin retorno
-vacio mostrar_mensaje(cadena texto) {
-    imprimir("Mensaje: " + texto)
+vacio mostrar_mensaje(texto mensaje) {
+    imprimir("Mensaje: " + mensaje)
 }
 ```
 
@@ -110,16 +110,16 @@ si (edad >= 18) {
 
 // Bucles
 mientras (contador < 10) {
-    imprimir("Contador: " + contador.cadena())
+    imprimir("Contador: " + contador.texto())
     contador++
 }
 
 para (entero i = 0; i < 5; i++) {
-    imprimir("Iteración: " + i.cadena())
+    imprimir("Iteración: " + i.texto())
 }
 
 para (elemento en lista) {
-    imprimir("Elemento: " + elemento.cadena())
+    imprimir("Elemento: " + elemento.texto())
 }
 ```
 
@@ -127,10 +127,10 @@ para (elemento en lista) {
 ```qz
 objeto Persona {
     publico:
-        cadena nombre
+        texto nombre
         entero edad
         
-        Persona(cadena n, entero e) {
+        Persona(texto n, entero e) {
             ambiente.nombre = n
             ambiente.edad = e
         }
@@ -140,7 +140,7 @@ objeto Persona {
         }
     
     privado:
-        cadena id = "PER-001"
+        texto id = "PER-001"
 }
 
 // Uso del objeto

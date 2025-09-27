@@ -9,13 +9,13 @@ La extensión ahora soporta ambos estilos de nomenclatura:
 ```quetzal
 // camelCase
 entero miEdad = 25
-cadena nombreCompleto = "Ana García"
-bool estaActivo = verdadero
+texto nombreCompleto = "Ana García"
+log estaActivo = verdadero
 
 // snake_case
 entero mi_edad = 25
-cadena nombre_completo = "Ana García"
-bool esta_activo = verdadero
+texto nombre_completo = "Ana García"
+log esta_activo = verdadero
 ```
 
 #### Funciones
@@ -34,7 +34,6 @@ entero calcular_suma(entero valor_uno, entero valor_dos) {
 ### ✅ Palabras reservadas con tilde
 Se agregó soporte para palabras reservadas con acentos:
 
-- `función` (además de `funcion`)
 - `número` (además de `numero`)
 - `vacío` (además de `vacio`)
 - `público` (además de `publico`)

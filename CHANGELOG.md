@@ -40,7 +40,7 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ### 🎨 Características de Sintaxis
 - Reconocimiento de palabras reservadas en español
-- Soporte para tipos de datos nativos (entero, número, cadena, bool, lista, jsn, vacio)
+- Soporte para tipos de datos nativos (entero, número, texto, log, lista, jsn, vacio)
 - Resaltado de funciones builtin (imprimir, imprimir_exito, imprimir_error, etc.)
 - Diferenciación visual entre variables, funciones y objetos
 - Soporte para comentarios de línea `//` y bloque `/* */`

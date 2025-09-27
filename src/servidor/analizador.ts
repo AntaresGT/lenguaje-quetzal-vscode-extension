@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 const IDENTIFICADOR = String.raw`[\p{L}_][\p{L}\p{N}_]*`;
-const PATRON_TIPO = String.raw`(?:entero|número|numero|texto|cadena|log|bool|lista\s*<\s*[^>]+?\s*>|lista|jsn|vacio|vacío|[A-Z][\p{L}\p{N}_]*)`;
+const PATRON_TIPO = String.raw`(?:entero|número|numero|texto|log|lista\s*<\s*[^>]+?\s*>|lista|jsn|vacio|vacío|excepción|excepcion|[A-Z][\p{L}\p{N}_]*)`;
 
 export interface FuncionAnalizada {
     nombre: string;
@@ -97,16 +97,6 @@ export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
         identificadores.set(nombre, tipo);
     }
 
-    const regexFuncionLegacy = new RegExp(String.raw`\b(?:función|funcion|fn)\s+(${IDENTIFICADOR})\s*\(([^)]*)\)\s*\{`, 'gu');
-    while ((coincidencia = regexFuncionLegacy.exec(textoLimpio)) !== null) {
-        const nombre = coincidencia[1];
-        const parametros = coincidencia[2]
-            .split(',')
-            .map(p => extraerNombreParametro(p))
-            .filter(p => p.length > 0);
-        funciones.push({ nombre, parametros });
-        identificadores.set(nombre, 'desconocido');
-    }
 
     const regexVariable = new RegExp(String.raw`\b(${PATRON_TIPO})\s+(?:var\s+)?(${IDENTIFICADOR})\b`, 'gu');
     while ((coincidencia = regexVariable.exec(textoLimpio)) !== null) {
