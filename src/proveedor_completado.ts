@@ -24,11 +24,16 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         token: vscode.CancellationToken,
         context: vscode.CompletionContext
     ): vscode.ProviderResult<vscode.CompletionItem[] | vscode.CompletionList> {
-        
+        const configuracion = vscode.workspace.getConfiguration('quetzal');
+        const autocompletadoHabilitado = configuracion.get<boolean>('autocompletado.habilitado', true);
+        if (!autocompletadoHabilitado) {
+            return [];
+        }
+
         const linea_actual = document.lineAt(position.line);
         const texto_antes_cursor = linea_actual.text.substring(0, position.character);
-        
-    const completados: vscode.CompletionItem[] = [];
+
+        const completados: vscode.CompletionItem[] = [];
 
         // Agregar palabras reservadas
         completados.push(...this.palabras_reservadas);
@@ -40,11 +45,11 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         completados.push(...this.funciones_builtin);
 
         // Agregar completados contextuales
-    completados.push(...this.obtener_completados_contextuales(document, position));
+        completados.push(...this.obtener_completados_contextuales(document, position));
 
-    // Autocompletado por tipo si hay un identificador antes de un punto
-    const tipados = this.obtener_completados_por_tipo(document, position, texto_antes_cursor);
-    completados.push(...tipados);
+        // Autocompletado por tipo si hay un identificador antes de un punto
+        const tipados = this.obtener_completados_por_tipo(document, position, texto_antes_cursor);
+        completados.push(...tipados);
 
         // Filtrar por relevancia
         return this.filtrar_completados(completados, texto_antes_cursor);
@@ -142,7 +147,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
         const completados: vscode.CompletionItem[] = [];
         
         // Obtener funciones definidas en el documento
-    const funciones_documento = this.extraer_funciones_documento(document);
+        const funciones_documento = this.extraer_funciones_documento(document);
         funciones_documento.forEach(funcion => {
             completados.push(this.crear_item_funcion_usuario(funcion));
         });
