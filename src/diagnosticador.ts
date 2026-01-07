@@ -70,15 +70,14 @@ export class DiagnosticadorQuetzal {
     private inicializar_vocabulario(): void {
         this.palabras_reservadas = new Set([
             'si', 'sino', 'mientras', 'para', 'en', 'cada', 'hacer', 'romper', 'continuar',
-            'retornar', 'intentar', 'atrapar', 'finalmente', 'lanzar',
-            'capturar',
+            'retornar', 'intentar', 'atrapar', 'capturar', 'finalmente', 'lanzar',
             'objeto', 'nuevo', 'ambiente', 'libre',
-            'importar', 'exportar', 'desde', 'como', 'asíncrono', 'asincrono', 'esperar',
-            'y', 'o', 'var', 'público', 'publico', 'privado', 'tipo', 'excepción', 'excepcion'
+            'importar', 'exportar', 'desde', 'como', 'asíncrono', 'asincróno', 'asincrono', 'esperar',
+            'y', 'o', 'ó', 'var', 'público', 'publico', 'privado', 'excepción', 'excepcion'
         ]);
 
         this.tipos_datos = new Set([
-            'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'log', 'lista', 'jsn',
+            'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'log', 'lóg', 'lista', 'jsn',
             'excepción', 'excepcion',
             'verdadero', 'falso', 'nulo'
         ]);
@@ -161,7 +160,7 @@ export class DiagnosticadorQuetzal {
         const linea_limpia = linea.trim();
 
         // Regex para detectar declaraciones de variables
-        const regex_declaracion = /^(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+((?:mut|var)\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u;
+        const regex_declaracion = /^(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+((?:var)\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u;
         const coincidencia = linea_limpia.match(regex_declaracion);
 
         if (coincidencia) {
@@ -192,7 +191,7 @@ export class DiagnosticadorQuetzal {
         const diagnosticos: vscode.Diagnostic[] = [];
         
         // Regex para detectar definiciones de funciones
-        const regex_funcion_nueva = /^(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
+        const regex_funcion_nueva = /^(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
 
         const coincidencia = linea.match(regex_funcion_nueva);
 

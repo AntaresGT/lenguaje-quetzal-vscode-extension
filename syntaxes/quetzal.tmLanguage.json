@@ -51,8 +51,8 @@
         "cadenas": {
             "patterns": [
                 {
-                    "name": "string.quoted.double.quetzal",
-                    "begin": "\"",
+                    "name": "string.interpolated.quetzal",
+                    "begin": "t\"",
                     "end": "\"",
                     "patterns": [
                         {
@@ -60,8 +60,35 @@
                             "match": "\\\\."
                         },
                         {
-                            "name": "variable.other.placeholder.quetzal",
-                            "match": "\\{[^}]*\\}"
+                            "name": "meta.interpolation.quetzal",
+                            "begin": "\\{",
+                            "end": "\\}",
+                            "beginCaptures": {
+                                "0": {
+                                    "name": "punctuation.definition.interpolation.begin.quetzal"
+                                }
+                            },
+                            "endCaptures": {
+                                "0": {
+                                    "name": "punctuation.definition.interpolation.end.quetzal"
+                                }
+                            },
+                            "patterns": [
+                                {
+                                    "include": "source.quetzal"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.double.quetzal",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.quetzal",
+                            "match": "\\\\."
                         }
                     ]
                 },
@@ -73,21 +100,6 @@
                         {
                             "name": "constant.character.escape.quetzal",
                             "match": "\\\\."
-                        }
-                    ]
-                },
-                {
-                    "name": "string.template.quetzal",
-                    "begin": "c\"",
-                    "end": "\"",
-                    "patterns": [
-                        {
-                            "name": "constant.character.escape.quetzal",
-                            "match": "\\\\."
-                        },
-                        {
-                            "name": "variable.other.placeholder.quetzal",
-                            "match": "\\{[^}]*\\}"
                         }
                     ]
                 }
@@ -109,19 +121,19 @@
             "patterns": [
                 {
                     "name": "keyword.control.quetzal",
-                    "match": "\\b(si|sino|mientras|para|en|cada|hacer|romper|continuar|retornar|intentar|atrapar|capturar|finalmente|lanzar)\\b"
+                    "match": "\\b(si|sino|mientras|para|en|cada|hacer|romper|continuar|retornar|intentar|capturar|atrapar|finalmente|lanzar)\\b"
                 },
                 {
                     "name": "keyword.other.quetzal",
-                    "match": "\\b(importar|exportar|desde|como|nuevo|ambiente|libre|asíncrono|asincrono|esperar)\\b"
+                    "match": "\\b(importar|exportar|desde|como|nuevo|ambiente|libre|asíncrono|asincróno|asincrono|esperar)\\b"
                 },
                 {
                     "name": "keyword.operator.logical.quetzal",
-                    "match": "\\b(y|o)\\b"
+                    "match": "\\b(y|o|ó)\\b"
                 },
                 {
                     "name": "storage.modifier.quetzal",
-                    "match": "\\b(mut|público|publico|privado)\\b"
+                    "match": "\\b(var|público|publico|privado)\\b"
                 },
                 {
                     "name": "storage.type.class.quetzal",
@@ -133,11 +145,15 @@
             "patterns": [
                 {
                     "name": "storage.type.quetzal",
-                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lista|jsn|excepción|excepcion)\\b"
+                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lóg|lista|jsn|excepción|excepcion)\\b"
                 },
                 {
                     "name": "constant.language.boolean.quetzal",
                     "match": "\\b(verdadero|falso)\\b"
+                },
+                {
+                    "name": "constant.language.null.quetzal",
+                    "match": "\\b(nulo)\\b"
                 }
             ]
         },
@@ -153,7 +169,7 @@
                 },
                 {
                     "name": "keyword.operator.arithmetic.quetzal",
-                    "match": "(\\+|\\-|\\*|/|%|\\+\\+|\\-\\-)"
+                    "match": "(\\*\\*|\\+\\+|\\-\\-|\\+|\\-|\\*|/|%)"
                 },
                 {
                     "name": "keyword.operator.logical.quetzal",
@@ -173,7 +189,7 @@
             "patterns": [
                 {
                     "name": "entity.name.function.definition.quetzal",
-                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lista|jsn|excepción|excepcion)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lóg|lista|jsn|excepción|excepcion)\\s+([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ_][a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ_]*)\\s*(?=\\()",
                     "captures": {
                         "1": {
                             "name": "storage.type.quetzal"
@@ -184,17 +200,21 @@
                     }
                 },
                 {
+                    "name": "support.function.builtin.quetzal",
+                    "match": "\\b(rango)\\b"
+                },
+                {
+                    "name": "support.class.builtin.quetzal",
+                    "match": "\\b(consola|Matemática|Archivo|Red|Sistema)\\b"
+                },
+                {
                     "name": "entity.name.function.call.quetzal",
-                    "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+                    "match": "\\b([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ_][a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ_]*)\\s*(?=\\()",
                     "captures": {
                         "1": {
                             "name": "entity.name.function.quetzal"
                         }
                     }
-                },
-                {
-                    "name": "support.function.builtin.quetzal",
-                    "match": "\\b(imprimir|imprimir_error|imprimir_advertencia|imprimir_informacion|imprimir_depurar|imprimir_exito|imprimir_alerta|imprimir_confirmacion)\\b"
                 }
             ]
         },
@@ -202,7 +222,7 @@
             "patterns": [
                 {
                     "name": "variable.other.declaration.quetzal",
-                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lista|jsn|excepción|excepcion)\\s+(mut\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?==)",
+                    "match": "\\b(vacío|vacio|entero|número|numero|texto|log|lóg|lista|jsn|excepción|excepcion)\\s+(var\\s+)?([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ_][a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ_]*)\\s*(?==)",
                     "captures": {
                         "1": {
                             "name": "storage.type.quetzal"
@@ -217,7 +237,7 @@
                 },
                 {
                     "name": "variable.other.quetzal",
-                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+                    "match": "\\b[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ_][a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ_]*\\b"
                 }
             ]
         },
@@ -225,7 +245,7 @@
             "patterns": [
                 {
                     "name": "entity.name.type.class.quetzal",
-                    "match": "\\b(objeto)\\s+([A-Z][a-zA-Z0-9_]*)\\b",
+                    "match": "\\b(objeto)\\s+([A-ZÁÉÍÓÚÜÑ][a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ_]*)\\b",
                     "captures": {
                         "1": {
                             "name": "storage.type.class.quetzal"
@@ -237,7 +257,7 @@
                 },
                 {
                     "name": "entity.name.type.quetzal",
-                    "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+                    "match": "\\b[A-ZÁÉÍÓÚÜÑ][a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ_]*\\b"
                 }
             ]
         },
@@ -257,7 +277,7 @@
                 },
                 {
                     "name": "punctuation.separator.quetzal",
-                    "match": "[,;.]"
+                    "match": "[,.]"
                 }
             ]
         }

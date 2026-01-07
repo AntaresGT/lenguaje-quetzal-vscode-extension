@@ -87,11 +87,13 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_palabra_reservada('lanzar', 'Lanzar excepción'),
             this.crear_item_palabra_reservada('y', 'Operador lógico AND'),
             this.crear_item_palabra_reservada('o', 'Operador lógico OR'),
+            this.crear_item_palabra_reservada('ó', 'Operador lógico OR (con tilde)'),
             this.crear_item_palabra_reservada('público', 'Modificador público (con tilde)'),
             this.crear_item_palabra_reservada('publico', 'Modificador público'),
             this.crear_item_palabra_reservada('privado', 'Modificador privado'),
             this.crear_item_palabra_reservada('libre', 'Función estática'),
-            this.crear_item_palabra_reservada('asíncrono', 'Función asíncrona (con tilde)'),
+            this.crear_item_palabra_reservada('asíncrono', 'Función asíncrona (con tilde en í)'),
+            this.crear_item_palabra_reservada('asincróno', 'Función asíncrona (con tilde en ó)'),
             this.crear_item_palabra_reservada('asincrono', 'Función asíncrona'),
             this.crear_item_palabra_reservada('esperar', 'Esperar resultado asíncrono'),
             this.crear_item_palabra_reservada('excepción', 'Tipo excepción (con tilde)'),
@@ -107,6 +109,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
             this.crear_item_tipo('numero', 'Número decimal'),
             this.crear_item_tipo('texto', 'Cadena de texto'),
             this.crear_item_tipo('log', 'Valor lógico'),
+            this.crear_item_tipo('lóg', 'Valor lógico (con tilde)'),
             this.crear_item_tipo('lista', 'Lista de elementos'),
             this.crear_item_tipo('jsn', 'Objeto JSON'),
             this.crear_item_tipo('excepcion', 'Tipo de excepción'),
@@ -118,12 +121,25 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
 
         // Funciones builtin
         this.funciones_builtin = [
+            this.crear_item_funcion('rango', 'Crea una lista de números consecutivos', 'rango(${1:inicio}, ${2:fin})'),
+            this.crear_item_objeto_builtin('consola', 'Objeto para entrada/salida de consola'),
+            this.crear_item_objeto_builtin('Matemática', 'Módulo nativo de funciones matemáticas'),
             this.crear_item_funcion_deprecada('imprimir', 'Reemplazado por consola.mostrar("texto")', 'imprimir("${1:mensaje}")', 'consola.mostrar("${1:mensaje}")'),
             this.crear_item_funcion_deprecada('imprimir_exito', 'Reemplazado por consola.mostrar_exito("texto")', 'imprimir_exito("${1:mensaje}")', 'consola.mostrar_exito("${1:mensaje}")'),
             this.crear_item_funcion_deprecada('imprimir_error', 'Reemplazado por consola.mostrar_error("texto")', 'imprimir_error("${1:mensaje}")', 'consola.mostrar_error("${1:mensaje}")'),
             this.crear_item_funcion_deprecada('imprimir_advertencia', 'Reemplazado por consola.mostrar_advertencia("texto")', 'imprimir_advertencia("${1:mensaje}")', 'consola.mostrar_advertencia("${1:mensaje}")'),
             this.crear_item_funcion_deprecada('imprimir_informacion', 'Reemplazado por consola.mostrar_informacion("texto")', 'imprimir_informacion("${1:mensaje}")', 'consola.mostrar_informacion("${1:mensaje}")')
         ];
+    }
+
+    /**
+     * Crea un item de objeto builtin
+     */
+    private crear_item_objeto_builtin(nombre: string, descripcion: string): vscode.CompletionItem {
+        const item = new vscode.CompletionItem(nombre, vscode.CompletionItemKind.Module);
+        item.detail = descripcion;
+        item.documentation = new vscode.MarkdownString(`**${nombre}** - ${descripcion}`);
+        return item;
     }
 
     /** Crear item de función deprecada con sugerencia */
@@ -339,7 +355,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_funciones_documento(document: vscode.TextDocument): string[] {
         const funciones: string[] = [];
         const texto = document.getText();
-        const regexNueva = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
+        const regexNueva = new RegExp(String.raw`\b(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(`, 'ug');
         let match;
         while ((match = regexNueva.exec(texto)) !== null) {
             funciones.push(match[2]);
@@ -353,7 +369,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_variables_documento(document: vscode.TextDocument): string[] {
         const variables: string[] = [];
         const texto = document.getText();
-    const regex = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=`, 'ug');
+        const regex = new RegExp(String.raw`\b(entero|número|numero|texto|log|lóg|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=`, 'ug');
         let match;
         while ((match = regex.exec(texto)) !== null) {
             variables.push(match[2]);

@@ -37,61 +37,85 @@
         ],
         "description": "Crear una función sin valor de retorno en snake_case"
     },
-    "Declarar variable": {
-        "prefix": "var",
+    "Función asíncrona": {
+        "prefix": "asincrono",
         "body": [
-            "${1|entero,número,texto,log,lista,jsn|} ${2:nombreVariable} = ${3:valor}"
+            "asincrono ${1:tipo} ${2:nombre_funcion}(${3:parametros}) {",
+            "\t${4:// Código de la función asíncrona}",
+            "\tretornar ${5:valor}",
+            "}"
         ],
-        "description": "Declarar una variable en camelCase"
+        "description": "Crear una función asíncrona en Quetzal"
     },
-    "Declarar variable snake_case": {
-        "prefix": "var_snake",
+    "Declarar variable constante": {
+        "prefix": "const",
         "body": [
             "${1|entero,número,texto,log,lista,jsn|} ${2:nombre_variable} = ${3:valor}"
         ],
-        "description": "Declarar una variable en snake_case"
+        "description": "Declarar una variable constante (inmutable por defecto)"
     },
     "Declarar variable mutable": {
-        "prefix": "mut",
+        "prefix": "var",
         "body": [
-            "${1|entero,número,texto,log,lista,jsn|} mut ${2:nombreVariable} = ${3:valor}"
+            "${1|entero,número,texto,log,lista,jsn|} var ${2:nombre_variable} = ${3:valor}"
         ],
-        "description": "Declarar una variable mutable en camelCase"
+        "description": "Declarar una variable mutable con var"
     },
     "Declarar variable mutable snake_case": {
-        "prefix": "mut_snake",
+        "prefix": "var_snake",
         "body": [
-            "${1|entero,número,texto,log,lista,jsn|} mut ${2:nombre_variable} = ${3:valor}"
+            "${1|entero,número,texto,log,lista,jsn|} var ${2:nombre_variable} = ${3:valor}"
         ],
         "description": "Declarar una variable mutable en snake_case"
     },
-    "Imprimir": {
-        "prefix": "imprimir",
+    "Consola mostrar": {
+        "prefix": "mostrar",
         "body": [
-            "imprimir(${1:\"mensaje\"})"
+            "consola.mostrar(${1:\"mensaje\"})"
         ],
-        "description": "Imprimir un mensaje en consola"
+        "description": "Mostrar un mensaje en consola"
     },
-    "Imprimir éxito": {
-        "prefix": "imprimir_exito",
+    "Consola mostrar éxito": {
+        "prefix": "mostrar_exito",
         "body": [
-            "imprimir_exito(${1:\"mensaje de éxito\"})"
+            "consola.mostrar_exito(${1:\"mensaje de éxito\"})"
         ],
-        "description": "Imprimir un mensaje de éxito"
+        "description": "Mostrar un mensaje de éxito (verde)"
     },
-    "Imprimir error": {
-        "prefix": "imprimir_error",
+    "Consola mostrar error": {
+        "prefix": "mostrar_error",
         "body": [
-            "imprimir_error(${1:\"mensaje de error\"})"
+            "consola.mostrar_error(${1:\"mensaje de error\"})"
         ],
-        "description": "Imprimir un mensaje de error"
+        "description": "Mostrar un mensaje de error (rojo)"
     },
-    "Imprimir información": {
-        "prefix": "imprimir_info",
+    "Consola mostrar advertencia": {
+        "prefix": "mostrar_advertencia",
         "body": [
-            "imprimir_informacion(${1:\"mensaje informativo\"})"
+            "consola.mostrar_advertencia(${1:\"mensaje de advertencia\"})"
         ],
-        "description": "Imprimir un mensaje informativo"
+        "description": "Mostrar un mensaje de advertencia (amarillo)"
+    },
+    "Consola mostrar información": {
+        "prefix": "mostrar_informacion",
+        "body": [
+            "consola.mostrar_informacion(${1:\"mensaje informativo\"})"
+        ],
+        "description": "Mostrar un mensaje informativo (azul)"
+    },
+    "Consola pedir entrada": {
+        "prefix": "pedir",
+        "body": [
+            "texto ${1:respuesta} = consola.pedir(${2:\"Ingresa un valor: \"})"
+        ],
+        "description": "Pedir entrada de texto al usuario"
+    },
+    "Consola pedir secreto": {
+        "prefix": "pedir_secreto",
+        "body": [
+            "texto ${1:clave} = consola.pedir_secreto(${2:\"Ingresa tu contraseña: \"})"
+        ],
+        "description": "Pedir entrada secreta al usuario (no visible)"
     },
     "Condicional si": {
         "prefix": "si",
@@ -113,6 +137,19 @@
         ],
         "description": "Crear un condicional si-sino"
     },
+    "Condicional si-sino si-sino": {
+        "prefix": "si_sino_si",
+        "body": [
+            "si (${1:condición1}) {",
+            "\t${2:// Código si condición1 es verdadero}",
+            "} sino si (${3:condición2}) {",
+            "\t${4:// Código si condición2 es verdadero}",
+            "} sino {",
+            "\t${5:// Código si ninguna condición es verdadera}",
+            "}"
+        ],
+        "description": "Crear un condicional si-sino si-sino"
+    },
     "Bucle mientras": {
         "prefix": "mientras",
         "body": [
@@ -125,42 +162,70 @@
     "Bucle para": {
         "prefix": "para",
         "body": [
-            "para (${1:variable} = ${2:inicio}; ${3:condición}; ${4:incremento}) {",
-            "\t${5:// Código del bucle}",
+            "para (entero var ${1:i} = ${2:0}; ${1:i} < ${3:10}; ${1:i}++) {",
+            "\t${4:// Código del bucle}",
             "}"
         ],
-        "description": "Crear un bucle para"
+        "description": "Crear un bucle para con sintaxis completa"
     },
     "Bucle para-en": {
         "prefix": "para_en",
         "body": [
-            "para (${1:elemento} en ${2:lista}) {",
-            "\t${3:// Código del bucle}",
+            "para (${1|entero,número,texto,log|} var ${2:elemento} en ${3:lista}) {",
+            "\t${4:// Código del bucle}",
             "}"
         ],
         "description": "Crear un bucle para-en (foreach)"
+    },
+    "Bucle para-cada": {
+        "prefix": "para_cada",
+        "body": [
+            "para (${1|entero,número,texto,log|} var ${2:elemento} cada ${3:lista}) {",
+            "\t${4:// Código del bucle}",
+            "}"
+        ],
+        "description": "Crear un bucle para-cada (alternativa a foreach)"
+    },
+    "Bucle hacer-mientras": {
+        "prefix": "hacer",
+        "body": [
+            "hacer {",
+            "\t${1:// Código del bucle}",
+            "} mientras (${2:condición})"
+        ],
+        "description": "Crear un bucle hacer-mientras"
     },
     "Objeto": {
         "prefix": "objeto",
         "body": [
             "objeto ${1:NombreObjeto} {",
-            "\tpublico:",
-            "\t\t${2|entero,número,texto,log|} ${3:propiedad}",
-            "",
-            "\t\t${1:NombreObjeto}() {",
-            "\t\t\t${4:// Constructor}",
-            "\t\t}",
-            "",
-            "\t\t${5|entero,número,texto,log,vacio|} ${6:metodo}() {",
-            "\t\t\t${7:// Método}",
-            "\t\t\tretornar ${8:valor}",
-            "\t\t}",
-            "",
             "\tprivado:",
-            "\t\t${9:// Propiedades y métodos privados}",
+            "\t\t${2|entero,número,texto,log|} var ${3:propiedad}",
+            "",
+            "\tpublico:",
+            "\t\t${1:NombreObjeto}(${4:parametros}) {",
+            "\t\t\t${5:// Constructor}",
+            "\t\t}",
+            "",
+            "\t\t${6|entero,número,texto,log,vacio|} ${7:metodo}() {",
+            "\t\t\t${8:// Método}",
+            "\t\t}",
             "}"
         ],
         "description": "Crear un objeto con propiedades públicas y privadas"
+    },
+    "Objeto simple": {
+        "prefix": "objeto_simple",
+        "body": [
+            "objeto ${1:NombreObjeto} {",
+            "\t${2|entero,número,texto,log|} var ${3:propiedad}",
+            "",
+            "\t${1:NombreObjeto}(${4:parametros}) {",
+            "\t\t${5:// Constructor}",
+            "\t}",
+            "}"
+        ],
+        "description": "Crear un objeto simple (público por defecto)"
     },
     "JSON": {
         "prefix": "jsn",
@@ -172,6 +237,16 @@
         ],
         "description": "Crear un objeto JSON"
     },
+    "JSON mutable": {
+        "prefix": "jsn_var",
+        "body": [
+            "jsn var ${1:nombre_json} = {",
+            "\t${2:clave}: \"${3:valor}\",",
+            "\t${4:otra_clave}: ${5:otro_valor}",
+            "}"
+        ],
+        "description": "Crear un objeto JSON mutable"
+    },
     "Lista": {
         "prefix": "lista",
         "body": [
@@ -179,38 +254,100 @@
         ],
         "description": "Crear una lista tipada"
     },
-    "Try-Catch": {
+    "Lista mutable": {
+        "prefix": "lista_var",
+        "body": [
+            "lista<${1|entero,número,texto,log|}> var ${2:nombre_lista} = [${3:valores}]"
+        ],
+        "description": "Crear una lista tipada mutable"
+    },
+    "Rango de números": {
+        "prefix": "rango",
+        "body": [
+            "lista ${1:numeros} = rango(${2:1}, ${3:10})"
+        ],
+        "description": "Crear una lista con rango de números consecutivos"
+    },
+    "Intentar-Capturar": {
         "prefix": "intentar",
         "body": [
             "intentar {",
             "\t${1:// Código que puede fallar}",
-            "} atrapar (${2:excepción}) {",
+            "} capturar (excepcion ${2:e}) {",
             "\t${3:// Manejo de la excepción}",
+            "\tconsola.mostrar_error(${2:e}.mensaje)",
+            "}"
+        ],
+        "description": "Bloque intentar-capturar"
+    },
+    "Intentar-Capturar-Finalmente": {
+        "prefix": "intentar_finalmente",
+        "body": [
+            "intentar {",
+            "\t${1:// Código que puede fallar}",
+            "} capturar (excepcion ${2:e}) {",
+            "\t${3:// Manejo de la excepción}",
+            "\tconsola.mostrar_error(${2:e}.mensaje)",
             "} finalmente {",
             "\t${4:// Código que siempre se ejecuta}",
             "}"
         ],
-        "description": "Bloque intentar-atrapar-finalmente"
+        "description": "Bloque intentar-capturar-finalmente"
+    },
+    "Lanzar excepción": {
+        "prefix": "lanzar",
+        "body": [
+            "lanzar \"${1:Mensaje de error}\""
+        ],
+        "description": "Lanzar una excepción"
     },
     "Importar": {
         "prefix": "importar",
         "body": [
             "importar {",
-            "\t${1:funciones},",
-            "\t${2:variables}",
-            "} desde \"${3:ruta/al/modulo.qz}\""
+            "\t${1:elemento}",
+            "} desde \"${2:ruta/al/modulo.qz}\""
         ],
         "description": "Importar módulo"
+    },
+    "Importar con alias": {
+        "prefix": "importar_como",
+        "body": [
+            "importar {",
+            "\t${1:elemento} como ${2:alias}",
+            "} desde \"${3:ruta/al/modulo.qz}\""
+        ],
+        "description": "Importar módulo con alias"
+    },
+    "Importar Matemática": {
+        "prefix": "importar_mate",
+        "body": [
+            "importar { Matemática } desde \"quetzal/matemática\""
+        ],
+        "description": "Importar módulo nativo de Matemáticas"
     },
     "Exportar": {
         "prefix": "exportar",
         "body": [
             "exportar {",
-            "\t${1:funciones},",
-            "\t${2:variables}",
+            "\t${1:elemento}",
             "}"
         ],
         "description": "Exportar elementos del módulo"
+    },
+    "Interpolación de texto": {
+        "prefix": "t\"",
+        "body": [
+            "t\"${1:texto} {${2:variable}} ${3:más texto}\""
+        ],
+        "description": "Crear texto con interpolación de variables"
+    },
+    "Texto interpolado": {
+        "prefix": "texto_interpolado",
+        "body": [
+            "texto ${1:mensaje} = t\"${2:Hola}, {${3:nombre}}!\""
+        ],
+        "description": "Declarar texto con interpolación"
     },
     "Comentario de bloque": {
         "prefix": "/*",
@@ -220,5 +357,35 @@
             " */"
         ],
         "description": "Comentario multilínea"
+    },
+    "Nuevo objeto": {
+        "prefix": "nuevo",
+        "body": [
+            "${1:NombreObjeto} ${2:instancia} = nuevo ${1:NombreObjeto}(${3:parametros})"
+        ],
+        "description": "Instanciar un nuevo objeto"
+    },
+    "Método libre": {
+        "prefix": "libre",
+        "body": [
+            "libre ${1|entero,número,texto,log,vacio|} ${2:nombre_metodo}(${3:parametros}) {",
+            "\t${4:// Código del método}",
+            "}"
+        ],
+        "description": "Crear un método libre (estático)"
+    },
+    "Ambiente": {
+        "prefix": "ambiente",
+        "body": [
+            "ambiente.${1:propiedad}"
+        ],
+        "description": "Referencia al objeto actual (this)"
+    },
+    "Operador ternario": {
+        "prefix": "ternario",
+        "body": [
+            "${1:condición} ? ${2:valor_verdadero} : ${3:valor_falso}"
+        ],
+        "description": "Operador ternario condicional"
     }
 }

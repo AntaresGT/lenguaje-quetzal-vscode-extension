@@ -5,7 +5,7 @@
   
   **Soporte completo para el lenguaje de programación Quetzal**
   
-  [![Versión](https://img.shields.io/badge/versión-0.0.1-blue.svg)](package.json)
+  [![Versión](https://img.shields.io/badge/versión-0.0.2-blue.svg)](package.json)
   [![VS Code](https://img.shields.io/badge/VS%20Code-1.80.0+-brightgreen.svg)](https://code.visualstudio.com/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
   [![Licencia](https://img.shields.io/badge/licencia-AntaresGT-orange.svg)](LICENSE)
@@ -15,40 +15,43 @@
 
 ---
 
-## 🌟 Características Principales
+## Características Principales
 
-### 🎨 **Resaltado de Sintaxis Avanzado**
+### Resaltado de Sintaxis Avanzado
 - Reconocimiento completo de palabras reservadas en español
 - Coloreado diferenciado para tipos, funciones, variables y objetos
 - Soporte para comentarios de línea `//` y bloque `/* */`
-- Resaltado especial para cadenas con templates `c"texto {variable}"`
+- Resaltado especial para cadenas con interpolación `t"texto {variable}"`
+- Soporte para caracteres Unicode (acentos, ñ, etc.)
 
-### ⚡ **Autocompletado Inteligente**
+### Autocompletado Inteligente
 - Sugerencias automáticas para palabras reservadas y tipos de datos
 - Completado contextual de funciones y variables definidas por el usuario
+- Autocompletado de métodos según el tipo de dato (texto, lista, jsn, etc.)
 - Snippets predefinidos para estructuras comunes del lenguaje
 - Información detallada al hacer hover sobre elementos
+- Soporte para objetos builtin: `consola`, `Matemática`
 
-### 🔧 **Formateador de Código**
+### Formateador de Código
 - Formateo automático con sangría inteligente
 - Espaciado correcto alrededor de operadores
 - Configuración personalizable de espacios de sangría
 - Comando dedicado: `Formatear Documento Quetzal`
 
-### 🔍 **Diagnósticos en Tiempo Real**
+### Diagnósticos en Tiempo Real
 - Detección automática de errores de sintaxis
 - Validación de llaves `{}` y paréntesis `()` balanceados
-- Verificación de convenciones de nomenclatura (snake_case)
+- Advertencia sobre métodos deprecados (`imprimir` → `consola.mostrar`)
 - Advertencias sobre puntos y comas innecesarios
 
-### 🎨 **Tema Personalizado**
+### Tema Personalizado
 - "Tema Quetzal Oscuro" optimizado para el lenguaje
 - Colores específicos para cada tipo de token sintáctico
 - Diseño que mejora la legibilidad del código
 
 ---
 
-## 🚀 Instalación
+## Instalación
 
 ### Desde VS Code Marketplace
 1. Abre Visual Studio Code
@@ -63,25 +66,43 @@
 
 ---
 
-## 📝 Sintaxis del Lenguaje Quetzal
+## Sintaxis del Lenguaje Quetzal
 
 ### Tipos de Datos Básicos
 ```qz
-// Tipos fundamentales
+// Tipos fundamentales (constantes por defecto)
 entero edad = 25
 número altura = 1.75
 texto nombre = "Ana García"
 log es_estudiante = verdadero
 lista<texto> materias = ["Matemáticas", "Programación"]
 jsn configuracion = {tema: "oscuro", version: "1.0"}
-vacio sin_valor
+
+// Valor nulo
+entero valor_sin_asignar = nulo
 ```
 
 ### Variables Mutables
 ```qz
-// Variables que pueden cambiar de valor
-entero mut contador = 0
-texto mut mensaje = "texto inicial"
+// Variables que pueden cambiar de valor usando 'var'
+entero var contador = 0
+texto var mensaje = "texto inicial"
+lista<entero> var numeros = [1, 2, 3]
+
+// Modificar valores
+contador = 10
+mensaje = "nuevo texto"
+```
+
+### Interpolación de Texto
+```qz
+// Interpolación de texto con t"..."
+texto nombre = "María"
+entero edad = 25
+
+texto saludo = t"¡Hola, {nombre}!"
+texto info = t"{nombre} tiene {edad} años"
+texto calculo = t"La suma es: {5 + 3}"
 ```
 
 ### Funciones
@@ -93,7 +114,18 @@ entero calcular_suma(entero a, entero b) {
 
 // Función sin retorno
 vacio mostrar_mensaje(texto mensaje) {
-    imprimir("Mensaje: " + mensaje)
+    consola.mostrar("Mensaje: " + mensaje)
+}
+
+// Función con parámetros mutables
+texto procesar(texto var mensaje) {
+    mensaje += " - procesado"
+    retornar mensaje
+}
+
+// Función asíncrona
+asincrono número obtener_dato(entero id) {
+    retornar id * 10
 }
 ```
 
@@ -101,46 +133,59 @@ vacio mostrar_mensaje(texto mensaje) {
 ```qz
 // Condicionales
 si (edad >= 18) {
-    imprimir("Mayor de edad")
+    consola.mostrar("Mayor de edad")
 } sino si (edad >= 13) {
-    imprimir("Adolescente")
+    consola.mostrar("Adolescente")
 } sino {
-    imprimir("Menor de edad")
+    consola.mostrar("Menor de edad")
 }
 
-// Bucles
+// Bucle mientras
+entero var contador = 0
 mientras (contador < 10) {
-    imprimir("Contador: " + contador.texto())
+    consola.mostrar("Contador: " + contador.texto())
     contador++
 }
 
-para (entero i = 0; i < 5; i++) {
-    imprimir("Iteración: " + i.texto())
+// Bucle para
+para (entero var i = 0; i < 5; i++) {
+    consola.mostrar("Iteración: " + i.texto())
 }
 
-para (elemento en lista) {
-    imprimir("Elemento: " + elemento.texto())
+// Bucle para-en (foreach)
+lista<texto> frutas = ["manzana", "banana", "cereza"]
+para (texto var fruta en frutas) {
+    consola.mostrar("Fruta: " + fruta)
 }
+
+// Hacer-mientras
+entero var intentos = 0
+hacer {
+    consola.mostrar("Intento: " + intentos.texto())
+    intentos++
+} mientras (intentos < 3)
 ```
 
 ### Objetos
 ```qz
 objeto Persona {
-    publico:
-        texto nombre
-        entero edad
+    privado:
+        texto var nombre
+        entero var edad
         
-        Persona(texto n, entero e) {
-            ambiente.nombre = n
-            ambiente.edad = e
+    publico:
+        Persona(texto nombre, entero edad) {
+            ambiente.nombre = nombre
+            ambiente.edad = edad
+        }
+        
+        texto obtener_nombre() {
+            retornar ambiente.nombre
         }
         
         vacio saludar() {
-            imprimir("Hola, soy " + ambiente.nombre)
+            consola.mostrar("Hola, soy " + ambiente.nombre)
         }
-    
-    privado:
-        texto id = "PER-001"
 }
 
 // Uso del objeto
@@ -148,9 +193,34 @@ Persona juan = nuevo Persona("Juan López", 30)
 juan.saludar()
 ```
 
+### Métodos de Consola
+```qz
+// Salida de texto
+consola.mostrar("Mensaje normal")
+consola.mostrar_error("Error crítico")
+consola.mostrar_advertencia("Advertencia")
+consola.mostrar_exito("Operación completada")
+consola.mostrar_informacion("Información")
+
+// Entrada de usuario
+texto nombre = consola.pedir("Ingresa tu nombre: ")
+texto clave = consola.pedir_secreto("Ingresa tu contraseña: ")
+```
+
+### Manejo de Excepciones
+```qz
+intentar {
+    número resultado = dividir(10, 0)
+} capturar (excepcion e) {
+    consola.mostrar_error(e.mensaje)
+} finalmente {
+    consola.mostrar("Operación finalizada")
+}
+```
+
 ---
 
-## ⚙️ Configuración
+## Configuración
 
 La extensión incluye múltiples opciones configurables:
 
@@ -174,7 +244,7 @@ La extensión incluye múltiples opciones configurables:
 
 ---
 
-## 🎯 Comandos Disponibles
+## Comandos Disponibles
 
 | Comando | Descripción | Atajo |
 |---------|-------------|-------|
@@ -183,21 +253,28 @@ La extensión incluye múltiples opciones configurables:
 
 ---
 
-## 📦 Snippets Incluidos
+## Snippets Incluidos
 
 | Prefijo | Descripción | Genera |
 |---------|-------------|--------|
 | `funcion` | Función básica | `tipo nombre_funcion(parametros) { ... }` |
+| `var` | Variable mutable | `tipo var variable = valor` |
 | `si` | Condicional | `si (condición) { ... }` |
+| `si_sino` | Condicional completo | `si (condición) { ... } sino { ... }` |
 | `mientras` | Bucle while | `mientras (condición) { ... }` |
-| `para` | Bucle for | `para (var = 0; condición; incremento) { ... }` |
-| `objeto` | Objeto básico | `objeto NombreObjeto { publico: ... }` |
-| `imprimir` | Función print | `imprimir("mensaje")` |
-| `mut` | Variable mutable | `tipo mut variable = valor` |
+| `para` | Bucle for | `para (entero var i = 0; i < 10; i++) { ... }` |
+| `para_en` | Bucle foreach | `para (tipo var elemento en lista) { ... }` |
+| `hacer` | Bucle do-while | `hacer { ... } mientras (condición)` |
+| `objeto` | Objeto completo | `objeto NombreObjeto { privado: ... publico: ... }` |
+| `mostrar` | Consola mostrar | `consola.mostrar("mensaje")` |
+| `intentar` | Try-catch | `intentar { ... } capturar (excepcion e) { ... }` |
+| `importar` | Importar módulo | `importar { ... } desde "ruta"` |
+| `t"` | Texto interpolado | `t"texto {variable}"` |
+| `rango` | Crear rango | `lista numeros = rango(1, 10)` |
 
 ---
 
-## 🔨 Desarrollo
+## Desarrollo
 
 ### Requisitos
 - Node.js 18+
@@ -207,7 +284,7 @@ La extensión incluye múltiples opciones configurables:
 ### Configuración Local
 ```bash
 # Clonar repositorio
-git clone [URL_DEL_REPOSITORIO]
+git clone https://github.com/antaresgt/lenguaje-quetzal-vscode-extension.git
 cd lenguaje-quetzal-vscode-extension
 
 # Instalar dependencias
@@ -231,7 +308,7 @@ vsce package
 
 ---
 
-## 🤝 Contribuir
+## Contribuir
 
 ¡Las contribuciones son bienvenidas! Por favor:
 
@@ -243,7 +320,7 @@ vsce package
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 Este proyecto está bajo la **Licencia AntaresGT**. 
 
@@ -266,31 +343,36 @@ Para más detalles, consulta el archivo [LICENSE](LICENSE).
 
 ---
 
-## 🗂️ Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 lenguaje-quetzal-vscode-extension/
-├── 📁 src/                          # Código fuente TypeScript
-│   ├── extension.ts                 # Punto de entrada principal
-│   ├── servidor_lenguaje.ts         # Servidor de lenguaje
-│   ├── formateador.ts              # Formateador de código
-│   ├── proveedor_completado.ts     # Autocompletado
-│   └── diagnosticador.ts           # Diagnósticos
-├── 📁 syntaxes/                     # Gramática de sintaxis
-│   └── quetzal.tmLanguage.json     # Definición de tokens
-├── 📁 snippets/                     # Snippets predefinidos
-│   └── quetzal.json                # Plantillas de código
-├── 📁 themes/                       # Temas de color
-│   └── quetzal-dark-theme.json     # Tema oscuro
-├── 📁 imagenes/                     # Recursos gráficos
-├── 📄 package.json                  # Configuración de la extensión
-├── 📄 language-configuration.json   # Configuración del lenguaje
-└── 📄 README.md                     # Este archivo
+├── src/                              # Código fuente TypeScript
+│   ├── extension.ts                  # Punto de entrada principal
+│   ├── servidor_lenguaje.ts          # Servidor de lenguaje
+│   ├── formateador.ts                # Formateador de código
+│   ├── proveedor_completado.ts       # Autocompletado
+│   ├── diagnosticador.ts             # Diagnósticos
+│   └── compartido/                   # Módulos compartidos
+│       ├── metodos.ts                # Definición de métodos por tipo
+│       ├── objetos.ts                # Análisis de objetos
+│       └── patrones.ts               # Patrones regex comunes
+├── syntaxes/                         # Gramática de sintaxis
+│   └── quetzal.tmLanguage.json       # Definición de tokens
+├── snippets/                         # Snippets predefinidos
+│   └── quetzal.json                  # Plantillas de código
+├── themes/                           # Temas de color
+│   └── quetzal-dark-theme.json       # Tema oscuro
+├── imagenes/                         # Recursos gráficos
+├── ejemplos-lenguaje-quetzal/        # Ejemplos de código Quetzal
+├── package.json                      # Configuración de la extensión
+├── language-configuration.json       # Configuración del lenguaje
+└── README.md                         # Este archivo
 ```
 
 ---
 
-## 🔗 Enlaces Útiles
+## Enlaces Útiles
 
 - [Documentación de VS Code API](https://code.visualstudio.com/api)
 - [Guía de Desarrollo de Extensiones](https://code.visualstudio.com/api/get-started/your-first-extension)
@@ -304,14 +386,14 @@ lenguaje-quetzal-vscode-extension/
   
   ---
   
-  ### 🏢 Desarrollado por AntaresGT
+  ### Desarrollado por AntaresGT
   
   **Empresa:** AntaresGT  
   **Desarrollador:** Allam López  
   **Email:** alan@antaresgt.com  
   **Web:** https://antaresgt.com
   
-  *Tecnología innovadora desarrollada en Guatemala con ❤️*
+  *Tecnología innovadora desarrollada en Guatemala* 🇬🇹
   
   ---
   
@@ -319,4 +401,3 @@ lenguaje-quetzal-vscode-extension/
   *"Basado en el trabajo original de AntaresGT"*
   
 </div>
-Extensión de VSCode para el lenguaje Quetzal

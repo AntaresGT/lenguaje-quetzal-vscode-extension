@@ -78,9 +78,9 @@ export class ServidorLenguajeQuetzal {
         if (/^[A-Z]/u.test(original) && new RegExp(`^${IDENT_UNICODE}$`, 'u').test(original)) {
             return { base: 'objeto', nombreObjeto: original };
         }
-    if (t === 'número' || t === 'numero') return { base: 'numero' };
-    if (t === 'vacío' || t === 'vacio') return { base: 'vacio' };
-    if (t === 'log') return { base: 'log' };
+        if (t === 'número' || t === 'numero') return { base: 'numero' };
+        if (t === 'vacío' || t === 'vacio') return { base: 'vacio' };
+        if (t === 'log' || t === 'lóg') return { base: 'log' };
         if (t === 'entero') return { base: 'entero' };
         if (t === 'texto') return { base: 'texto' };
         if (t === 'jsn') return { base: 'jsn' };
@@ -150,7 +150,7 @@ export class ServidorLenguajeQuetzal {
      * Detecta si la posición actual está dentro de una función
      */
     private detectar_contexto_funcion(document: vscode.TextDocument, position: vscode.Position): boolean {
-        const REGEX_DEF_FUNC = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+${IDENT_UNICODE}\s*\(`, 'u');
+        const REGEX_DEF_FUNC = new RegExp(String.raw`\b(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+${IDENT_UNICODE}\s*\(`, 'u');
         for (let i = position.line; i >= 0; i--) {
             const linea = document.lineAt(i).text.trim();
             if (REGEX_DEF_FUNC.test(linea)) {
@@ -188,7 +188,7 @@ export class ServidorLenguajeQuetzal {
         const tipos = new Map<string, TipoInfo>();
         const texto = document.getText();
         // Declaración de variables: tipo [<gen>] [var ] nombre = ...
-    const REGEX_DECL = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista\s*<\s*[^>]+\s*>|lista|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
+        const REGEX_DECL = new RegExp(String.raw`\b(entero|número|numero|texto|log|lóg|lista\s*<\s*[^>]+\s*>|lista|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
         let m: RegExpExecArray | null;
         while ((m = REGEX_DECL.exec(texto)) !== null) {
             const tipo = this.normalizarTipo(m[1]);
@@ -210,7 +210,7 @@ export class ServidorLenguajeQuetzal {
     obtener_funciones_documento(document: vscode.TextDocument): string[] {
         const funciones: string[] = [];
         const texto_completo = document.getText();
-        const REGEX_FUNC_NUEVA = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista|jsn|vacio|vacío)\s+(${IDENT_UNICODE})\s*\(`, 'ug');
+        const REGEX_FUNC_NUEVA = new RegExp(String.raw`\b(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+(${IDENT_UNICODE})\s*\(`, 'ug');
         let coincidencia: RegExpExecArray | null;
         while ((coincidencia = REGEX_FUNC_NUEVA.exec(texto_completo)) !== null) {
             funciones.push(coincidencia[2]);
@@ -224,7 +224,7 @@ export class ServidorLenguajeQuetzal {
     obtener_variables_documento(document: vscode.TextDocument): string[] {
         const variables: string[] = [];
         const texto_completo = document.getText();
-    const REGEX_VARS = new RegExp(String.raw`\b(entero|número|numero|texto|log|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
+        const REGEX_VARS = new RegExp(String.raw`\b(entero|número|numero|texto|log|lóg|lista(?:\s*<\s*[^>]+\s*>)?|jsn|vacio|vacío)\s+(?:var\s+)?(${IDENT_UNICODE})\s*=`, 'ug');
         let coincidencia: RegExpExecArray | null;
         while ((coincidencia = REGEX_VARS.exec(texto_completo)) !== null) {
             variables.push(coincidencia[2]);
