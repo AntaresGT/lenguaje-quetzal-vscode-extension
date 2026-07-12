@@ -34,7 +34,7 @@ const REGEX_MIEMBRO_ATRIBUTO = new RegExp(
 );
 
 const REGEX_MIEMBRO_METODO = new RegExp(
-    String.raw`^(libre\s+)?(?:(${PATRON_TIPO})\s+)?(${IDENTIFICADOR})\s*\(([^)]*)\)\s*(?:\{)?$`,
+    String.raw`^(libre\s+)?(?:(?:asincrono|asíncrono)\s+)?(?:(${PATRON_TIPO})\s+)?(${IDENTIFICADOR})\s*\(([^)]*)\)\s*(?:\{)?$`,
     'u'
 );
 

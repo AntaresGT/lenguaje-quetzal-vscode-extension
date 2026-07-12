@@ -1,6 +1,7 @@
 {
     "name": "Tema Quetzal Oscuro",
     "type": "dark",
+    "semanticHighlighting": true,
     "colors": {
         "editor.background": "#1e1e1e",
         "editor.foreground": "#d4d4d4",
@@ -193,5 +194,13 @@
                 "foreground": "#D7BA7D"
             }
         }
-    ]
+    ],
+    "semanticTokenColors": {
+        "class": "#4EC9B0",
+        "function": "#DCDCAA",
+        "method": "#DCDCAA",
+        "variable": "#9CDCFE",
+        "parameter": "#9CDCFE",
+        "property": "#9CDCFE"
+    }
 }

@@ -1,260 +1,196 @@
 import * as vscode from 'vscode';
 
+interface Apertura {
+    simbolo: '(' | '{' | '[';
+    posicion: vscode.Position;
+}
+
+const PARES: Record<')' | '}' | ']', '(' | '{' | '['> = {
+    ')': '(',
+    '}': '{',
+    ']': '['
+};
+
 export class DiagnosticadorQuetzal {
-    private palabras_reservadas: Set<string> = new Set();
-    private tipos_datos: Set<string> = new Set();
+    private palabrasReservadas = new Set([
+        'si', 'sino', 'mientras', 'para', 'en', 'cada', 'hacer', 'romper', 'continuar',
+        'retornar', 'intentar', 'atrapar', 'capturar', 'finalmente', 'lanzar', 'objeto',
+        'prototipo', 'implementa', 'opcional', 'nuevo', 'ambiente', 'padre', 'libre',
+        'importar', 'exportar', 'desde', 'como', 'asincrono', 'asíncrono', 'esperar',
+        'y', 'o', 'no', 'var', 'público', 'publico', 'privado', 'excepción', 'excepcion'
+    ]);
 
-    constructor() {
-        this.inicializar_vocabulario();
-        console.log('Diagnosticador Quetzal inicializado');
-    }
+    private tiposDatos = new Set([
+        'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'log', 'lóg', 'lista',
+        'jsn', 'excepción', 'excepcion', 'verdadero', 'falso', 'nulo'
+    ]);
 
-    /**
-     * Analiza un documento y retorna diagnósticos
-     */
     analizar_documento(document: vscode.TextDocument): vscode.Diagnostic[] {
         const diagnosticos: vscode.Diagnostic[] = [];
-        const texto = document.getText();
-        const lineas = texto.split('\n');
+        const lineas = document.getText().split(/\r?\n/);
 
-        for (let numero_linea = 0; numero_linea < lineas.length; numero_linea++) {
-            const linea = lineas[numero_linea];
-            
-            // Analizar errores de sintaxis
-            diagnosticos.push(...this.analizar_sintaxis_linea(linea, numero_linea));
-            
-            // Analizar llaves balanceadas
-            diagnosticos.push(...this.analizar_llaves_balanceadas(linea, numero_linea));
-            
-            // Analizar declaraciones de variables
-            diagnosticos.push(...this.analizar_declaraciones_variables(linea, numero_linea));
-            
-            // Analizar llamadas a funciones
-            diagnosticos.push(...this.analizar_llamadas_funciones(linea, numero_linea));
-
-            // Advertir métodos deprecados imprimir*
-            diagnosticos.push(...this.analizar_deprecados_imprimir(linea, numero_linea));
+        for (let numeroLinea = 0; numeroLinea < lineas.length; numeroLinea++) {
+            const linea = lineas[numeroLinea];
+            diagnosticos.push(...this.analizarLinea(linea, numeroLinea));
+            diagnosticos.push(...this.analizarDeclaracion(linea, numeroLinea));
+            diagnosticos.push(...this.analizarFuncion(linea, numeroLinea));
+            diagnosticos.push(...this.analizarDeprecados(linea, numeroLinea));
         }
 
-        // Analizar estructura general del documento
-        diagnosticos.push(...this.analizar_estructura_documento(document));
-
+        diagnosticos.push(...this.analizarDelimitadores(document));
         return diagnosticos;
     }
 
-    /**
-     * Marca advertencia para métodos imprimir* deprecados y sugiere consola.*
-     */
-    private analizar_deprecados_imprimir(linea: string, numero_linea: number): vscode.Diagnostic[] {
-        const ds: vscode.Diagnostic[] = [];
+    private analizarLinea(linea: string, numeroLinea: number): vscode.Diagnostic[] {
+        const codigo = this.quitarComentarioLinea(linea).trimEnd();
+        if (!codigo || codigo.trimStart().startsWith('/*')) return [];
+        if (!codigo.endsWith(';')) return [];
+
+        const columna = linea.lastIndexOf(';');
+        return [new vscode.Diagnostic(
+            new vscode.Range(numeroLinea, columna, numeroLinea, columna + 1),
+            'Quetzal no utiliza punto y coma (;) al final de las instrucciones.',
+            vscode.DiagnosticSeverity.Warning
+        )];
+    }
+
+    private analizarDeclaracion(linea: string, numeroLinea: number): vscode.Diagnostic[] {
+        const coincidencia = this.quitarComentarioLinea(linea).trim().match(
+            /^(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u
+        );
+        return coincidencia ? this.validarNombre(coincidencia[2], linea, numeroLinea, 'variable') : [];
+    }
+
+    private analizarFuncion(linea: string, numeroLinea: number): vscode.Diagnostic[] {
+        const coincidencia = this.quitarComentarioLinea(linea).trim().match(
+            /^(?:(?:libre|asincrono|asíncrono)\s+)*(?:entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u
+        );
+        return coincidencia ? this.validarNombre(coincidencia[1], linea, numeroLinea, 'función') : [];
+    }
+
+    private validarNombre(nombre: string, linea: string, numeroLinea: number, clase: string): vscode.Diagnostic[] {
+        if (!this.palabrasReservadas.has(nombre) && !this.tiposDatos.has(nombre)) return [];
+        const inicio = linea.indexOf(nombre);
+        return [new vscode.Diagnostic(
+            new vscode.Range(numeroLinea, inicio, numeroLinea, inicio + nombre.length),
+            `"${nombre}" es una palabra reservada y no puede usarse como nombre de ${clase}.`,
+            vscode.DiagnosticSeverity.Error
+        )];
+    }
+
+    private analizarDeprecados(linea: string, numeroLinea: number): vscode.Diagnostic[] {
+        const diagnosticos: vscode.Diagnostic[] = [];
+        const codigo = this.quitarComentarioLinea(linea);
         const regex = /\b(imprimir(?:_[\p{L}\p{N}_]+)?)\s*\(/gu;
-        let m: RegExpExecArray | null;
-        while ((m = regex.exec(linea)) !== null) {
-            const nombre = m[1];
-            const inicio = m.index;
-            const fin = inicio + nombre.length;
-            const rango = new vscode.Range(numero_linea, inicio, numero_linea, fin);
-            const d = new vscode.Diagnostic(
-                rango,
-                `Método deprecado: ${nombre}. Usa consola.mostrar(...), consola.mostrar_error(...), consola.mostrar_advertencia(...), consola.mostrar_exito(...), consola.mostrar_informacion(...)`,
-                vscode.DiagnosticSeverity.Warning
-            );
-            ds.push(d);
-        }
-        return ds;
-    }
-
-    /**
-     * Inicializa el vocabulario del lenguaje
-     */
-    private inicializar_vocabulario(): void {
-        this.palabras_reservadas = new Set([
-            'si', 'sino', 'mientras', 'para', 'en', 'cada', 'hacer', 'romper', 'continuar',
-            'retornar', 'intentar', 'atrapar', 'capturar', 'finalmente', 'lanzar',
-            'objeto', 'nuevo', 'ambiente', 'libre',
-            'importar', 'exportar', 'desde', 'como', 'asíncrono', 'asincróno', 'asincrono', 'esperar',
-            'y', 'o', 'ó', 'var', 'público', 'publico', 'privado', 'excepción', 'excepcion'
-        ]);
-
-        this.tipos_datos = new Set([
-            'vacío', 'vacio', 'entero', 'número', 'numero', 'texto', 'log', 'lóg', 'lista', 'jsn',
-            'excepción', 'excepcion',
-            'verdadero', 'falso', 'nulo'
-        ]);
-    }
-
-    /**
-     * Analiza la sintaxis de una línea específica
-     */
-    private analizar_sintaxis_linea(linea: string, numero_linea: number): vscode.Diagnostic[] {
-        const diagnosticos: vscode.Diagnostic[] = [];
-        const linea_limpia = linea.trim();
-
-        // Saltar líneas vacías y comentarios
-        if (linea_limpia === '' || linea_limpia.startsWith('//') || linea_limpia.startsWith('/*')) {
-            return diagnosticos;
-        }
-
-        // Verificar punto y coma al final (no debe tenerlo en Quetzal)
-        if (linea_limpia.endsWith(';')) {
-            const posicion_error = linea.lastIndexOf(';');
-            const rango = new vscode.Range(numero_linea, posicion_error, numero_linea, posicion_error + 1);
+        let coincidencia: RegExpExecArray | null;
+        while ((coincidencia = regex.exec(codigo)) !== null) {
+            const nombre = coincidencia[1];
             diagnosticos.push(new vscode.Diagnostic(
-                rango,
-                'Quetzal no utiliza punto y coma (;) al final de las instrucciones',
+                new vscode.Range(numeroLinea, coincidencia.index, numeroLinea, coincidencia.index + nombre.length),
+                `Método deprecado: ${nombre}. Usa consola.mostrar(...).`,
                 vscode.DiagnosticSeverity.Warning
             ));
         }
-
-        // Verificar paréntesis balanceados
-        const parentesis_abiertos = (linea.match(/\(/g) || []).length;
-        const parentesis_cerrados = (linea.match(/\)/g) || []).length;
-        if (parentesis_abiertos !== parentesis_cerrados) {
-            const rango = new vscode.Range(numero_linea, 0, numero_linea, linea.length);
-            diagnosticos.push(new vscode.Diagnostic(
-                rango,
-                'Paréntesis no balanceados en esta línea',
-                vscode.DiagnosticSeverity.Error
-            ));
-        }
-
-        // Verificar comillas balanceadas
-        const comillas_dobles = (linea.match(/"/g) || []).length;
-        if (comillas_dobles % 2 !== 0) {
-            const rango = new vscode.Range(numero_linea, 0, numero_linea, linea.length);
-            diagnosticos.push(new vscode.Diagnostic(
-                rango,
-                'Comillas no balanceadas en esta línea',
-                vscode.DiagnosticSeverity.Error
-            ));
-        }
-
         return diagnosticos;
     }
 
-    /**
-     * Analiza llaves balanceadas
-     */
-    private analizar_llaves_balanceadas(linea: string, numero_linea: number): vscode.Diagnostic[] {
+    private analizarDelimitadores(document: vscode.TextDocument): vscode.Diagnostic[] {
         const diagnosticos: vscode.Diagnostic[] = [];
-        
-        // Verificar que las llaves tengan espacios apropiados
-        const regex_llave_mal_formateada = /\w\{|\}\w/;
-        if (regex_llave_mal_formateada.test(linea)) {
-            const rango = new vscode.Range(numero_linea, 0, numero_linea, linea.length);
-            diagnosticos.push(new vscode.Diagnostic(
-                rango,
-                'Las llaves deben estar separadas por espacios',
-                vscode.DiagnosticSeverity.Information
-            ));
-        }
-
-        return diagnosticos;
-    }
-
-    /**
-     * Analiza declaraciones de variables
-     */
-    private analizar_declaraciones_variables(linea: string, numero_linea: number): vscode.Diagnostic[] {
-        const diagnosticos: vscode.Diagnostic[] = [];
-        const linea_limpia = linea.trim();
-
-        // Regex para detectar declaraciones de variables
-        const regex_declaracion = /^(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+((?:var)\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/u;
-        const coincidencia = linea_limpia.match(regex_declaracion);
-
-        if (coincidencia) {
-            const nombre_variable = coincidencia[3];
-            
-            // Ya no verificamos convención de nombres - permitimos camelCase y snake_case
-            // Solo verificamos que no sean palabras reservadas
-            
-            // Verificar que las palabras reservadas no se usen como nombres de variables
-            if (this.palabras_reservadas.has(nombre_variable) || this.tipos_datos.has(nombre_variable)) {
-                const posicion_inicio = linea.indexOf(nombre_variable);
-                const rango = new vscode.Range(numero_linea, posicion_inicio, numero_linea, posicion_inicio + nombre_variable.length);
-                diagnosticos.push(new vscode.Diagnostic(
-                    rango,
-                    `"${nombre_variable}" es una palabra reservada y no puede usarse como nombre de variable`,
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-        }
-
-        return diagnosticos;
-    }
-
-    /**
-     * Analiza llamadas a funciones
-     */
-    private analizar_llamadas_funciones(linea: string, numero_linea: number): vscode.Diagnostic[] {
-        const diagnosticos: vscode.Diagnostic[] = [];
-        
-        // Regex para detectar definiciones de funciones
-        const regex_funcion_nueva = /^(entero|número|numero|texto|log|lóg|lista|jsn|vacio|vacío)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/u;
-
-        const coincidencia = linea.match(regex_funcion_nueva);
-
-        if (coincidencia) {
-            const nombre_funcion = coincidencia[2];
-            
-            // Ya no verificamos convención de nombres - permitimos camelCase y snake_case
-            // Solo verificamos que no sean palabras reservadas
-            
-            // Verificar que las palabras reservadas no se usen como nombres de funciones
-            if (this.palabras_reservadas.has(nombre_funcion) || this.tipos_datos.has(nombre_funcion)) {
-                const posicion_inicio = linea.indexOf(nombre_funcion);
-                const rango = new vscode.Range(numero_linea, posicion_inicio, numero_linea, posicion_inicio + nombre_funcion.length);
-                diagnosticos.push(new vscode.Diagnostic(
-                    rango,
-                    `"${nombre_funcion}" es una palabra reservada y no puede usarse como nombre de función`,
-                    vscode.DiagnosticSeverity.Error
-                ));
-            }
-        }
-
-        return diagnosticos;
-    }
-
-    /**
-     * Analiza la estructura general del documento
-     */
-    private analizar_estructura_documento(document: vscode.TextDocument): vscode.Diagnostic[] {
-        const diagnosticos: vscode.Diagnostic[] = [];
+        const aperturas: Apertura[] = [];
         const texto = document.getText();
+        let linea = 0;
+        let columna = 0;
+        let enCadena = false;
+        let enComentarioBloque = false;
+        let escape = false;
 
-        // Verificar llaves balanceadas en todo el documento
-        const llaves_abiertas = (texto.match(/\{/g) || []).length;
-        const llaves_cerradas = (texto.match(/\}/g) || []).length;
-        
-        if (llaves_abiertas !== llaves_cerradas) {
-            const rango = new vscode.Range(0, 0, document.lineCount - 1, 0);
+        for (let indice = 0; indice < texto.length; indice++) {
+            const caracter = texto[indice];
+            const siguiente = texto[indice + 1];
+            const posicion = new vscode.Position(linea, columna);
+
+            if (enComentarioBloque) {
+                if (caracter === '*' && siguiente === '/') {
+                    enComentarioBloque = false;
+                    indice++;
+                    columna++;
+                }
+            } else if (enCadena) {
+                if (!escape && caracter === '"') enCadena = false;
+                escape = !escape && caracter === '\\';
+                if (caracter !== '\\') escape = false;
+            } else if (caracter === '/' && siguiente === '/') {
+                while (indice < texto.length && texto[indice] !== '\n') {
+                    indice++;
+                    columna++;
+                }
+                indice--;
+                columna--;
+            } else if (caracter === '/' && siguiente === '*') {
+                enComentarioBloque = true;
+                indice++;
+                columna++;
+            } else if (caracter === '"') {
+                enCadena = true;
+            } else if (caracter === '(' || caracter === '{' || caracter === '[') {
+                aperturas.push({ simbolo: caracter, posicion });
+            } else if (caracter === ')' || caracter === '}' || caracter === ']') {
+                const apertura = aperturas.pop();
+                if (!apertura || apertura.simbolo !== PARES[caracter]) {
+                    diagnosticos.push(new vscode.Diagnostic(
+                        new vscode.Range(posicion, posicion.translate(0, 1)),
+                        `"${caracter}" no tiene un delimitador de apertura compatible.`,
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                }
+            }
+
+            if (caracter === '\n') {
+                linea++;
+                columna = 0;
+            } else {
+                columna++;
+            }
+        }
+
+        if (enCadena) {
+            const posicion = new vscode.Position(linea, Math.max(0, columna - 1));
             diagnosticos.push(new vscode.Diagnostic(
-                rango,
-                `Llaves no balanceadas en el documento: ${llaves_abiertas} abiertas, ${llaves_cerradas} cerradas`,
+                new vscode.Range(posicion, posicion.translate(0, 1)),
+                'Cadena de texto sin cerrar.',
                 vscode.DiagnosticSeverity.Error
             ));
         }
-
-        // Verificar paréntesis balanceados en todo el documento
-        const parentesis_abiertos = (texto.match(/\(/g) || []).length;
-        const parentesis_cerrados = (texto.match(/\)/g) || []).length;
-        
-        if (parentesis_abiertos !== parentesis_cerrados) {
-            const rango = new vscode.Range(0, 0, document.lineCount - 1, 0);
+        if (enComentarioBloque) {
             diagnosticos.push(new vscode.Diagnostic(
-                rango,
-                `Paréntesis no balanceados en el documento: ${parentesis_abiertos} abiertos, ${parentesis_cerrados} cerrados`,
+                new vscode.Range(0, 0, 0, 1),
+                'Comentario de bloque sin cerrar.',
                 vscode.DiagnosticSeverity.Error
             ));
         }
-
+        for (const apertura of aperturas) {
+            diagnosticos.push(new vscode.Diagnostic(
+                new vscode.Range(apertura.posicion, apertura.posicion.translate(0, 1)),
+                `Falta cerrar "${apertura.simbolo}".`,
+                vscode.DiagnosticSeverity.Error
+            ));
+        }
         return diagnosticos;
     }
 
-    /**
-     * Crea un diagnóstico personalizado
-     */
+    private quitarComentarioLinea(linea: string): string {
+        let enCadena = false;
+        let escape = false;
+        for (let indice = 0; indice < linea.length - 1; indice++) {
+            const caracter = linea[indice];
+            if (!escape && caracter === '"') enCadena = !enCadena;
+            escape = !escape && caracter === '\\';
+            if (caracter !== '\\') escape = false;
+            if (!enCadena && caracter === '/' && linea[indice + 1] === '/') return linea.slice(0, indice);
+        }
+        return linea;
+    }
+
     crear_diagnostico(
         linea: number,
         columna_inicio: number,
@@ -262,7 +198,6 @@ export class DiagnosticadorQuetzal {
         mensaje: string,
         severidad: vscode.DiagnosticSeverity = vscode.DiagnosticSeverity.Error
     ): vscode.Diagnostic {
-        const rango = new vscode.Range(linea, columna_inicio, linea, columna_fin);
-        return new vscode.Diagnostic(rango, mensaje, severidad);
+        return new vscode.Diagnostic(new vscode.Range(linea, columna_inicio, linea, columna_fin), mensaje, severidad);
     }
 }

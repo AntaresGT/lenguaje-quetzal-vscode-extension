@@ -10,6 +10,7 @@ export interface FuncionAnalizada {
     nombre: string;
     tipoRetorno?: string;
     parametros: string[];
+    documentacion?: string;
 }
 
 export interface VariableAnalizada {
@@ -39,6 +40,7 @@ export interface AnalisisDocumento {
     exportaciones: ExportacionAnalizada[];
     importaciones: ImportacionAnalizada[];
     identificadores: Map<string, string>;
+    documentacionSimbolos: Map<string, string>;
 }
 
 function extraerNombreParametro(parametro: string): string {
@@ -66,6 +68,69 @@ function dividirElementosLista(texto: string): string[] {
         .filter(parte => parte.length > 0);
 }
 
+function limpiarLineaComentario(linea: string): string {
+    return linea
+        .replace(/^\s*\/\/\/?\s?/u, '')
+        .replace(/^\s*\/\*+\s?/u, '')
+        .replace(/\*\/\s*$/u, '')
+        .replace(/^\s*\*\s?/u, '')
+        .trim();
+}
+
+function extraerDocumentacionSimbolos(texto: string): Map<string, string> {
+    const documentos = new Map<string, string>();
+    const lineas = texto.split(/\r?\n/);
+    let comentarios: string[] = [];
+    let enComentarioBloque = false;
+
+    const patronFuncion = new RegExp(
+        String.raw`^\s*(?:(?:libre|asincrono|asíncrono)\s+)*(${PATRON_TIPO})\s+(${IDENTIFICADOR})\s*\(`,
+        'u'
+    );
+    const patronObjeto = new RegExp(String.raw`^\s*(?:objeto|prototipo)\s+(${IDENTIFICADOR})\b`, 'u');
+    const patronVariable = new RegExp(
+        String.raw`^\s*(${PATRON_TIPO})\s+(?:var\s+)?(${IDENTIFICADOR})\b`,
+        'u'
+    );
+
+    for (const linea of lineas) {
+        const recortada = linea.trim();
+        if (enComentarioBloque || recortada.startsWith('/*')) {
+            comentarios.push(limpiarLineaComentario(linea));
+            if (recortada.includes('*/')) {
+                enComentarioBloque = false;
+            } else {
+                enComentarioBloque = true;
+            }
+            continue;
+        }
+        if (recortada.startsWith('//')) {
+            comentarios.push(limpiarLineaComentario(linea));
+            continue;
+        }
+        if (!recortada) {
+            if (comentarios.length > 0) comentarios.push('');
+            continue;
+        }
+
+        const textoDoc = comentarios.join('\n').trim();
+        const funcion = recortada.match(patronFuncion);
+        const objeto = recortada.match(patronObjeto);
+        const variable = recortada.match(patronVariable);
+        if (textoDoc && funcion) {
+            documentos.set(`funcion:${funcion[2]}`, textoDoc);
+            documentos.set(`simbolo:${funcion[2]}`, textoDoc);
+        } else if (textoDoc && objeto) {
+            documentos.set(`objeto:${objeto[1]}`, textoDoc);
+            documentos.set(`simbolo:${objeto[1]}`, textoDoc);
+        } else if (textoDoc && variable) {
+            documentos.set(`simbolo:${variable[2]}`, textoDoc);
+        }
+        comentarios = [];
+    }
+    return documentos;
+}
+
 export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
     const textoLimpio = limpiarComentarios(texto);
     const funciones: FuncionAnalizada[] = [];
@@ -74,12 +139,13 @@ export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
     const exportaciones: ExportacionAnalizada[] = [];
     const importaciones: ImportacionAnalizada[] = [];
     const identificadores = new Map<string, string>();
+    const documentacionSimbolos = extraerDocumentacionSimbolos(texto);
 
     for (const objeto of objetos) {
         identificadores.set(objeto.nombre, objeto.nombre);
     }
 
-    const regexFuncionNueva = new RegExp(String.raw`\b(${PATRON_TIPO})\s+(${IDENTIFICADOR})\s*\(([^)]*)\)\s*\{`, 'gu');
+    const regexFuncionNueva = new RegExp(String.raw`\b(?:(?:libre|asincrono|asíncrono)\s+)*(${PATRON_TIPO})\s+(${IDENTIFICADOR})\s*\(([^)]*)\)\s*\{`, 'gu');
     let coincidencia: RegExpExecArray | null;
     while ((coincidencia = regexFuncionNueva.exec(textoLimpio)) !== null) {
         const tipo = normalizarTipo(coincidencia[1]);
@@ -88,7 +154,12 @@ export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
             .split(',')
             .map(p => extraerNombreParametro(p))
             .filter(p => p.length > 0);
-        funciones.push({ nombre, tipoRetorno: tipo, parametros });
+        funciones.push({
+            nombre,
+            tipoRetorno: tipo,
+            parametros,
+            documentacion: documentacionSimbolos.get(`funcion:${nombre}`)
+        });
         identificadores.set(nombre, tipo);
     }
 
@@ -137,7 +208,15 @@ export function analizarTextoQuetzal(texto: string): AnalisisDocumento {
         }
     }
 
-    return { funciones, variables, objetos, exportaciones, importaciones, identificadores };
+    return {
+        funciones,
+        variables,
+        objetos,
+        exportaciones,
+        importaciones,
+        identificadores,
+        documentacionSimbolos
+    };
 }
 
 export function normalizarRutaModulo(ruta: string): string {

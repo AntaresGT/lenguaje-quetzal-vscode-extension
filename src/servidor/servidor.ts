@@ -4,11 +4,17 @@ import {
     CompletionItemTag,
     CompletionParams,
     FileChangeType,
+    Hover,
+    HoverParams,
     InsertTextFormat,
     InitializeParams,
     InitializeResult,
+    MarkupKind,
     Position,
     ProposedFeatures,
+    SemanticTokens,
+    SemanticTokensBuilder,
+    SemanticTokensParams,
     TextDocuments,
     TextDocumentSyncKind,
     createConnection
@@ -36,17 +42,65 @@ import {
     VariableAnalizada,
     analizarTextoQuetzal
 } from './analizador';
+import {
+    MODULOS_NATIVOS,
+    MiembroNativo,
+    ModuloNativo,
+    SimboloNativo,
+    obtenerModuloNativo,
+    obtenerSimboloNativo
+} from './modulos_nativos';
 
 const connection = createConnection(ProposedFeatures.all);
 const documentos = new TextDocuments(TextDocument);
 
 const IDENTIFICADOR_REGEX = String.raw`[\p{L}_][\p{L}\p{N}_]*`;
+const DOCUMENTACION_BASE = 'https://lenguaje-quetzal.com';
+const LEYENDA_SEMANTICA = {
+    tokenTypes: ['class', 'function', 'method', 'variable', 'parameter', 'property'],
+    tokenModifiers: []
+};
+const INDICES_TOKENS_SEMANTICOS = new Map(
+    LEYENDA_SEMANTICA.tokenTypes.map((tipo, indice) => [tipo, indice])
+);
+
+function documentacionMarkdown(
+    titulo: string,
+    descripcion: string,
+    firma?: string,
+    enlace?: string
+) {
+    const partes = [`**${titulo}**`, '', descripcion];
+    if (firma) {
+        partes.push('', '```qz', firma, '```');
+    }
+    if (enlace) {
+        partes.push('', `[Abrir documentación oficial](${enlace})`);
+    }
+    return { kind: MarkupKind.Markdown, value: partes.join('\n') };
+}
+
+function enlaceParaPalabra(etiqueta: string): string {
+    if (['si', 'sino'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/control/condicionales/`;
+    if (['mientras', 'para', 'hacer', 'en', 'cada'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/control/bucles/`;
+    if (['romper', 'continuar', 'retornar'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/control/flujo/`;
+    if (['intentar', 'capturar', 'atrapar', 'finalmente'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/errores/try-catch/`;
+    if (['lanzar', 'excepcion', 'excepción'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/errores/excepciones/`;
+    if (['importar', 'exportar', 'desde', 'como'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/modulos/importar-exportar/`;
+    if (['objeto', 'nuevo', 'ambiente', 'padre'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/oop/clases-objetos/`;
+    if (['prototipo', 'implementa', 'opcional'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/oop/prototipos/`;
+    if (['publico', 'público', 'privado', 'libre'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/oop/modificadores-acceso/`;
+    if (['asincrono', 'asíncrono', 'esperar'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/funciones/asincronas/`;
+    if (['entero', 'numero', 'número', 'texto', 'log', 'lista', 'jsn', 'vacio', 'vacío', 'nulo'].includes(etiqueta)) return `${DOCUMENTACION_BASE}/fundamentos/tipos-datos/`;
+    return `${DOCUMENTACION_BASE}/referencia/palabras-reservadas/`;
+}
 
 type OrigenArchivo = 'usuario' | 'ejemplo';
 
 interface RegistroAnalisis {
     ruta: string;
     analisis: AnalisisDocumento;
+    version?: number;
 }
 
 interface ConocimientoGlobal {
@@ -66,6 +120,11 @@ const conocimientoEjemplos: ConocimientoGlobal = {
 const archivosUsuario = new Map<string, RegistroAnalisis>();
 let carpetasTrabajo: string[] = [];
 let rutaEjemplos: string | undefined;
+
+const DIRECTORIOS_IGNORADOS = new Set([
+    '.agents', '.git', '.quetzal', '.vscode', '.vscode-test', 'node_modules', 'out',
+    'dist', 'build', 'target', 'coverage'
+]);
 
 function uriAPathFs(uri: string): string {
     try {
@@ -87,7 +146,7 @@ async function listarArchivosQuetzal(carpeta: string): Promise<string[]> {
     try {
         const entradas = await fs.promises.readdir(carpeta, { withFileTypes: true });
         for (const entrada of entradas) {
-            if (entrada.name === 'node_modules' || entrada.name === '.git' || entrada.name === 'out') {
+            if (entrada.isDirectory() && DIRECTORIOS_IGNORADOS.has(entrada.name)) {
                 continue;
             }
             const rutaCompleta = path.join(carpeta, entrada.name);
@@ -197,14 +256,26 @@ function extraerPrefijoGeneral(documento: TextDocument, posicion: Position): str
     return coincidencia ? coincidencia[1] : '';
 }
 
-function detectarContextoMetodo(documento: TextDocument, posicion: Position): { identificador: string; prefijo: string } | null {
+function detectarContextoMetodo(documento: TextDocument, posicion: Position): { expresion: string; prefijo: string } | null {
     const linea = obtenerLinea(documento, posicion.line);
     const antes = linea.slice(0, posicion.character);
-    const coincidencia = antes.match(new RegExp(String.raw`(${IDENTIFICADOR_REGEX})\.(\p{L}?[\p{L}\p{N}_]*)$`, 'u'));
+    const coincidencia = antes.match(new RegExp(String.raw`([^\s=;,{}]+)\.(\p{L}?[\p{L}\p{N}_]*)$`, 'u'));
     if (!coincidencia) {
         return null;
     }
-    return { identificador: coincidencia[1], prefijo: coincidencia[2] ?? '' };
+    return { expresion: coincidencia[1], prefijo: coincidencia[2] ?? '' };
+}
+
+function obtenerAnalisisDocumento(documento: TextDocument): AnalisisDocumento {
+    const ruta = path.normalize(uriAPathFs(documento.uri));
+    const existente = archivosUsuario.get(ruta);
+    if (existente?.version === documento.version) {
+        return existente.analisis;
+    }
+
+    const analisis = analizarTextoQuetzal(documento.getText());
+    archivosUsuario.set(ruta, { ruta, analisis, version: documento.version });
+    return analisis;
 }
 
 function detectarContextoImportacion(documento: TextDocument, posicion: Position): { modulo: string; prefijo: string } | null {
@@ -255,13 +326,21 @@ function filtrarPorPrefijo(items: CompletionItem[], prefijo: string): Completion
 }
 
 function crearItemDesdePalabra(palabra: DefinicionPalabra): CompletionItem {
+    const enlace = palabra.documentacion ?? enlaceParaPalabra(palabra.etiqueta);
     const item: CompletionItem = {
         label: palabra.etiqueta,
         kind: palabra.tipo,
-        detail: palabra.descripcion
+        detail: palabra.descripcion,
+        documentation: documentacionMarkdown(
+            palabra.etiqueta,
+            palabra.descripcion,
+            palabra.ejemplo?.replace(/\$\{\d+:([^}]+)\}/g, '$1'),
+            enlace
+        )
     };
-    if (palabra.snippet) {
-        item.insertText = palabra.snippet;
+    const snippet = palabra.ejemplo ?? palabra.snippet;
+    if (snippet) {
+        item.insertText = snippet;
         item.insertTextFormat = FORMATO_SNIPPET;
     }
     if (FUNCIONES_DEPRECADAS.includes(palabra)) {
@@ -271,10 +350,17 @@ function crearItemDesdePalabra(palabra: DefinicionPalabra): CompletionItem {
 }
 
 function crearItemFuncion(funcion: FuncionAnalizada, detalle: string): CompletionItem {
+    const firma = `${funcion.tipoRetorno ?? 'valor'} ${funcion.nombre}(${funcion.parametros.join(', ')})`;
     const item: CompletionItem = {
         label: funcion.nombre,
         kind: CompletionItemKind.Function,
-        detail: detalle
+        detail: detalle,
+        documentation: documentacionMarkdown(
+            funcion.nombre,
+            funcion.documentacion ?? `${detalle}. Parámetros inferidos desde código Quetzal del proyecto.`,
+            firma,
+            `${DOCUMENTACION_BASE}/funciones/definicion/`
+        )
     };
     if (funcion.parametros.length > 0) {
         const partes = funcion.parametros.map((parametro, indice) => '${' + (indice + 1) + ':' + parametro + '}');
@@ -294,6 +380,12 @@ function crearItemVariable(nombre: string, tipo: string | undefined, clase: Comp
     };
     if (tipo) {
         item.detail = `Tipo: ${tipo}`;
+        item.documentation = documentacionMarkdown(
+            nombre,
+            `Símbolo disponible con tipo \`${tipo}\`.`,
+            `${tipo} ${nombre}`,
+            `${DOCUMENTACION_BASE}/fundamentos/variables-constantes/`
+        );
     }
     return item;
 }
@@ -398,7 +490,73 @@ function sugerirMiembrosObjeto(objeto: ObjetoAnalizado, esEstatico: boolean): Co
         .map(miembro => crearItemMiembroObjeto(objeto, miembro, esEstatico));
 }
 
+function detectarContextoNuevo(documento: TextDocument, posicion: Position): { prefijo: string } | null {
+    const linea = obtenerLinea(documento, posicion.line);
+    const antes = linea.slice(0, posicion.character);
+    const coincidencia = antes.match(new RegExp(String.raw`\bnuevo\s+(${IDENTIFICADOR_REGEX})?$`, 'u'));
+    return coincidencia ? { prefijo: coincidencia[1] ?? '' } : null;
+}
+
+function crearItemMiembroNativo(
+    modulo: ModuloNativo,
+    simbolo: SimboloNativo,
+    miembro: MiembroNativo
+): CompletionItem {
+    const parametros = miembro.parametros ?? [];
+    const firma = miembro.propiedad
+        ? `${simbolo.nombre}.${miembro.nombre}: ${miembro.retorno ?? 'valor'}`
+        : `${simbolo.nombre}.${miembro.nombre}(${parametros.join(', ')}) -> ${miembro.retorno ?? 'vacío'}`;
+    const item: CompletionItem = {
+        label: miembro.nombre,
+        kind: miembro.propiedad ? CompletionItemKind.Constant : CompletionItemKind.Method,
+        detail: miembro.retorno ? `${miembro.descripcion} Retorna ${miembro.retorno}.` : miembro.descripcion,
+        documentation: documentacionMarkdown(
+            `${simbolo.nombre}.${miembro.nombre}`,
+            miembro.descripcion,
+            firma,
+            modulo.documentacion
+        ),
+        sortText: miembro.propiedad ? `1_${miembro.nombre}` : `2_${miembro.nombre}`
+    };
+    if (!miembro.propiedad) {
+        const argumentos = parametros.map((parametro, indice) => '${' + (indice + 1) + ':' + parametro + '}');
+        item.insertText = `${miembro.nombre}(${argumentos.join(', ')})`;
+        item.insertTextFormat = InsertTextFormat.Snippet;
+    }
+    return item;
+}
+
+function obtenerSimboloImportado(
+    identificador: string,
+    analisis: AnalisisDocumento
+): { modulo: ModuloNativo; simbolo: SimboloNativo } | undefined {
+    for (const importacion of analisis.importaciones) {
+        const modulo = obtenerModuloNativo(importacion.modulo);
+        if (!modulo) continue;
+        for (const elemento of importacion.elementos) {
+            if ((elemento.alias ?? elemento.nombre) !== identificador) continue;
+            const simbolo = modulo.simbolos.find(candidato => candidato.nombre === elemento.nombre);
+            if (simbolo) return { modulo, simbolo };
+        }
+    }
+    return undefined;
+}
+
+function sugerirMiembrosNativos(
+    modulo: ModuloNativo,
+    simbolo: SimboloNativo,
+    estaticos: boolean
+): CompletionItem[] {
+    return simbolo.miembros
+        .filter(miembro => Boolean(miembro.estatico) === estaticos)
+        .map(miembro => crearItemMiembroNativo(modulo, simbolo, miembro));
+}
+
 function obtenerExportacionesDeModulo(modulo: string, documento: TextDocument): ExportacionAnalizada[] | undefined {
+    const moduloNativo = obtenerModuloNativo(modulo);
+    if (moduloNativo) {
+        return moduloNativo.simbolos.map(simbolo => ({ nombre: simbolo.nombre, tipo: simbolo.nombre }));
+    }
     if (conocimientoEjemplos.exportaciones.has(modulo)) {
         return conocimientoEjemplos.exportaciones.get(modulo);
     }
@@ -449,7 +607,61 @@ function obtenerTipoImportado(nombre: string, analisis: AnalisisDocumento, docum
     return undefined;
 }
 
-function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, identificador: string): CompletionItem[] {
+function inferirTipoDeCadena(
+    documento: TextDocument,
+    analisis: AnalisisDocumento,
+    expresion: string
+): string | undefined {
+    const raiz = expresion.match(new RegExp(`^(${IDENTIFICADOR_REGEX})`, 'u'))?.[1];
+    if (!raiz) return undefined;
+
+    const importado = obtenerSimboloImportado(raiz, analisis);
+    let tipo = importado ? importado.simbolo.nombre : analisis.identificadores.get(raiz);
+    if (!tipo) tipo = obtenerTipoImportado(raiz, analisis, documento);
+    if (!tipo && raiz === 'consola') tipo = 'consola';
+
+    const llamadas = [...expresion.matchAll(new RegExp(String.raw`\.(${IDENTIFICADOR_REGEX})\s*\(`, 'gu'))];
+    let usarEstaticos = Boolean(importado);
+    for (const llamada of llamadas) {
+        if (!tipo) return undefined;
+        const nombreMetodo = llamada[1];
+        const nativo = obtenerSimboloNativo(tipo);
+        if (nativo) {
+            const miembro = nativo.simbolo.miembros.find(candidato =>
+                candidato.nombre === nombreMetodo && Boolean(candidato.estatico) === usarEstaticos
+            );
+            tipo = miembro?.retorno;
+            usarEstaticos = false;
+            continue;
+        }
+        const base = normalizarTipoBase(tipo);
+        const metodoBase = base
+            ? METODOS_PREDEFINIDOS[base]?.find(candidato => candidato.nombre.replace(/\(.*/, '') === nombreMetodo)
+            : undefined;
+        tipo = metodoBase?.retorno;
+        usarEstaticos = false;
+    }
+    return tipo;
+}
+
+function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, expresion: string): CompletionItem[] {
+    if (expresion.includes('.')) {
+        const tipoCadena = inferirTipoDeCadena(documento, analisis, expresion);
+        if (!tipoCadena) return [];
+        const nativoCadena = obtenerSimboloNativo(tipoCadena);
+        if (nativoCadena) return sugerirMiembrosNativos(nativoCadena.modulo, nativoCadena.simbolo, false);
+        const baseCadena = normalizarTipoBase(tipoCadena);
+        if (baseCadena && METODOS_PREDEFINIDOS[baseCadena]) {
+            return crearItemsMetodosPredefinidos(baseCadena);
+        }
+        return [];
+    }
+    const identificador = expresion;
+    const nativoImportado = obtenerSimboloImportado(identificador, analisis);
+    if (nativoImportado) {
+        return sugerirMiembrosNativos(nativoImportado.modulo, nativoImportado.simbolo, true);
+    }
+
     const objetoDirecto = obtenerObjetoDefinido(identificador, analisis);
     if (objetoDirecto) {
         const estaticos = sugerirMiembrosObjeto(objetoDirecto, true);
@@ -468,6 +680,11 @@ function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, id
 
     const nombreObjeto = extraerNombreObjeto(tipo);
     if (nombreObjeto) {
+        const nativo = obtenerSimboloNativo(nombreObjeto);
+        if (nativo) {
+            const miembros = sugerirMiembrosNativos(nativo.modulo, nativo.simbolo, false);
+            if (miembros.length > 0) return miembros;
+        }
         const objeto = obtenerObjetoDefinido(nombreObjeto, analisis);
         if (objeto) {
             const miembros = sugerirMiembrosObjeto(objeto, false);
@@ -481,15 +698,31 @@ function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, id
     if (!base) {
         return [];
     }
+    return crearItemsMetodosPredefinidos(base);
+}
+
+function crearItemsMetodosPredefinidos(base: string): CompletionItem[] {
     const definiciones = METODOS_PREDEFINIDOS[base];
     if (!definiciones) {
         return [];
     }
     return definiciones.map(definicion => {
+        const nombre = definicion.nombre.replace(/\(.*/, '');
+        const firma = `${base}.${definicion.nombre} -> ${definicion.retorno ?? 'vacío'}`;
         const item: CompletionItem = {
-            label: definicion.nombre,
+            label: nombre,
             kind: CompletionItemKind.Method,
-            detail: definicion.retorno ? `Retorna ${definicion.retorno}` : 'Método'
+            detail: definicion.retorno ? `Método de ${base}; retorna ${definicion.retorno}` : `Método de ${base}`,
+            documentation: documentacionMarkdown(
+                `${base}.${nombre}`,
+                `Operación integrada para valores de tipo \`${base}\`.`,
+                firma,
+                base === 'lista'
+                    ? `${DOCUMENTACION_BASE}/datos/listas/`
+                    : base === 'jsn'
+                        ? `${DOCUMENTACION_BASE}/datos/json/`
+                        : `${DOCUMENTACION_BASE}/referencia/funciones-integradas/`
+            )
         };
         const insertable = definicion.snippet ?? definicion.nombre;
         item.insertText = insertable;
@@ -499,6 +732,21 @@ function sugerirMetodos(documento: TextDocument, analisis: AnalisisDocumento, id
 }
 
 function sugerirElementosImportacion(documento: TextDocument, modulo: string): CompletionItem[] {
+    const moduloNativo = obtenerModuloNativo(modulo);
+    if (moduloNativo) {
+        return moduloNativo.simbolos.map(simbolo => ({
+            label: simbolo.nombre,
+            kind: simbolo.constructible ? CompletionItemKind.Class : CompletionItemKind.Module,
+            detail: simbolo.descripcion,
+            documentation: documentacionMarkdown(
+                simbolo.nombre,
+                `${simbolo.descripcion} Exportado por \`${moduloNativo.ruta}\`.`,
+                `importar { ${simbolo.nombre} } desde "${moduloNativo.ruta}"`,
+                moduloNativo.documentacion
+            ),
+            insertText: simbolo.nombre
+        }));
+    }
     const exportaciones = obtenerExportacionesDeModulo(modulo, documento);
     if (!exportaciones) {
         return [];
@@ -519,6 +767,24 @@ function sugerirRutasModulo(documento: TextDocument, prefijo: string): Completio
     const directorio = path.dirname(rutaDocumento);
     const items: CompletionItem[] = [];
     const agregados = new Set<string>();
+    for (const modulo of MODULOS_NATIVOS) {
+        const rutas = modulo.ruta === 'quetzal/matemática'
+            ? [modulo.ruta, 'quetzal/matematica']
+            : [modulo.ruta];
+        for (const ruta of rutas) {
+            if ((!prefijo || ruta.startsWith(prefijo)) && !agregados.has(ruta)) {
+                agregados.add(ruta);
+                items.push({
+                    label: ruta,
+                    kind: CompletionItemKind.Module,
+                    detail: modulo.descripcion,
+                    documentation: documentacionMarkdown(ruta, modulo.descripcion, undefined, modulo.documentacion),
+                    insertText: ruta,
+                    sortText: `0_${ruta}`
+                });
+            }
+        }
+    }
     for (const registro of archivosUsuario.values()) {
         const relativa = path.relative(directorio, registro.ruta).replace(/\\/g, '/');
         let sugerencia = relativa;
@@ -568,6 +834,33 @@ function generarCompletadosGenerales(analisis: AnalisisDocumento): CompletionIte
         agregarItem(items, agregados, crearItemDesdePalabra(dep));
     }
 
+    agregarItem(items, agregados, {
+        label: 'consola',
+        kind: CompletionItemKind.Module,
+        detail: 'Entrada y salida estándar',
+        documentation: documentacionMarkdown(
+            'consola',
+            'Objeto integrado para mostrar mensajes y solicitar datos.',
+            'consola.mostrar("Hola")',
+            `${DOCUMENTACION_BASE}/io/consola/`
+        ),
+        sortText: '0_consola'
+    });
+    agregarItem(items, agregados, {
+        label: 'rango',
+        kind: CompletionItemKind.Function,
+        detail: 'Genera una lista de enteros consecutivos',
+        documentation: documentacionMarkdown(
+            'rango',
+            'Con un argumento genera desde 0; con dos usa inicio y fin. El fin no se incluye.',
+            'rango(inicio, fin) -> lista<entero>',
+            `${DOCUMENTACION_BASE}/datos/listas/`
+        ),
+        insertText: 'rango(${1:inicio}, ${2:fin})',
+        insertTextFormat: InsertTextFormat.Snippet,
+        sortText: '0_rango'
+    });
+
     for (const funcion of conocimientoEjemplos.funciones.values()) {
         agregarItem(items, agregados, crearItemFuncion(funcion, 'Función de ejemplo'));
     }
@@ -586,7 +879,25 @@ function generarCompletadosGenerales(analisis: AnalisisDocumento): CompletionIte
 
     for (const importacion of analisis.importaciones) {
         for (const elemento of importacion.elementos) {
-            agregarItem(items, agregados, crearItemVariable(elemento.alias ?? elemento.nombre, undefined, CompletionItemKind.Reference));
+            const etiqueta = elemento.alias ?? elemento.nombre;
+            const moduloNativo = obtenerModuloNativo(importacion.modulo);
+            const simboloNativo = moduloNativo?.simbolos.find(simbolo => simbolo.nombre === elemento.nombre);
+            if (moduloNativo && simboloNativo) {
+                agregarItem(items, agregados, {
+                    label: etiqueta,
+                    kind: simboloNativo.constructible ? CompletionItemKind.Class : CompletionItemKind.Module,
+                    detail: `${simboloNativo.descripcion} Importado de ${moduloNativo.ruta}.`,
+                    documentation: documentacionMarkdown(
+                        etiqueta,
+                        simboloNativo.descripcion,
+                        `importar { ${elemento.nombre}${elemento.alias ? ` como ${elemento.alias}` : ''} } desde "${moduloNativo.ruta}"`,
+                        moduloNativo.documentacion
+                    ),
+                    sortText: `0_${etiqueta}`
+                });
+            } else {
+                agregarItem(items, agregados, crearItemVariable(etiqueta, undefined, CompletionItemKind.Reference));
+            }
         }
     }
 
@@ -599,13 +910,195 @@ function generarCompletadosGenerales(analisis: AnalisisDocumento): CompletionIte
     return items;
 }
 
+function sugerirConstructores(analisis: AnalisisDocumento): CompletionItem[] {
+    const items: CompletionItem[] = analisis.objetos.map(objeto => ({
+        label: objeto.nombre,
+        kind: CompletionItemKind.Constructor,
+        detail: `Construir objeto ${objeto.nombre}`,
+        documentation: documentacionMarkdown(
+            `nuevo ${objeto.nombre}`,
+            'Crea una instancia del objeto definido en este archivo.',
+            `nuevo ${objeto.nombre}()`,
+            `${DOCUMENTACION_BASE}/oop/constructores/`
+        ),
+        insertText: `${objeto.nombre}($0)`,
+        insertTextFormat: InsertTextFormat.Snippet
+    }));
+    for (const importacion of analisis.importaciones) {
+        const modulo = obtenerModuloNativo(importacion.modulo);
+        if (!modulo) continue;
+        for (const elemento of importacion.elementos) {
+            const simbolo = modulo.simbolos.find(candidato => candidato.nombre === elemento.nombre && candidato.constructible);
+            if (!simbolo) continue;
+            const nombre = elemento.alias ?? elemento.nombre;
+            items.push({
+                label: nombre,
+                kind: CompletionItemKind.Constructor,
+                detail: `Construir ${simbolo.descripcion}`,
+                documentation: documentacionMarkdown(
+                    `nuevo ${nombre}`,
+                    simbolo.descripcion,
+                    `nuevo ${nombre}(...)`,
+                    modulo.documentacion
+                ),
+                insertText: `${nombre}($0)`,
+                insertTextFormat: InsertTextFormat.Snippet
+            });
+        }
+    }
+    return items;
+}
+
+function obtenerPalabraEnPosicion(documento: TextDocument, posicion: Position): { palabra: string; inicio: number } | undefined {
+    const linea = obtenerLinea(documento, posicion.line);
+    const antes = linea.slice(0, posicion.character);
+    const despues = linea.slice(posicion.character);
+    const izquierda = antes.match(/[\p{L}\p{N}_]+$/u)?.[0] ?? '';
+    const derecha = despues.match(/^[\p{L}\p{N}_]+/u)?.[0] ?? '';
+    const palabra = `${izquierda}${derecha}`;
+    return palabra ? { palabra, inicio: posicion.character - izquierda.length } : undefined;
+}
+
+function hoverDesdeItem(item: CompletionItem): Hover | null {
+    if (!item.documentation) return null;
+    const contenido = typeof item.documentation === 'string'
+        ? { kind: MarkupKind.Markdown, value: item.documentation }
+        : item.documentation;
+    return { contents: contenido };
+}
+
+function obtenerHover(documento: TextDocument, posicion: Position, analisis: AnalisisDocumento): Hover | null {
+    const palabraEnPosicion = obtenerPalabraEnPosicion(documento, posicion);
+    if (!palabraEnPosicion) return null;
+
+    const linea = obtenerLinea(documento, posicion.line);
+    const antesDePalabra = linea.slice(0, palabraEnPosicion.inicio);
+    const expresion = antesDePalabra.match(/([^\s=;,{}]+)\.$/u)?.[1];
+    if (expresion) {
+        const miembro = sugerirMetodos(documento, analisis, expresion)
+            .find(item => item.label === palabraEnPosicion.palabra);
+        const hoverMiembro = miembro ? hoverDesdeItem(miembro) : null;
+        if (hoverMiembro) return hoverMiembro;
+    }
+
+    const comentario = analisis.documentacionSimbolos.get(`simbolo:${palabraEnPosicion.palabra}`);
+    const objeto = analisis.objetos.find(candidato => candidato.nombre === palabraEnPosicion.palabra);
+    if (comentario && objeto) {
+        return {
+            contents: documentacionMarkdown(
+                objeto.nombre,
+                comentario,
+                `objeto ${objeto.nombre} { ... }`,
+                `${DOCUMENTACION_BASE}/oop/clases-objetos/`
+            )
+        };
+    }
+
+    const item = generarCompletadosGenerales(analisis)
+        .find(candidato => candidato.label === palabraEnPosicion.palabra);
+    return item ? hoverDesdeItem(item) : null;
+}
+
+function obtenerNombresDeClases(analisis: AnalisisDocumento): Set<string> {
+    const nombres = new Set<string>(analisis.objetos.map(objeto => objeto.nombre));
+    for (const modulo of MODULOS_NATIVOS) {
+        for (const simbolo of modulo.simbolos) nombres.add(simbolo.nombre);
+    }
+    for (const importacion of analisis.importaciones) {
+        const modulo = obtenerModuloNativo(importacion.modulo);
+        if (!modulo) continue;
+        for (const elemento of importacion.elementos) {
+            const simbolo = modulo.simbolos.find(candidato => candidato.nombre === elemento.nombre);
+            if (simbolo) nombres.add(elemento.alias ?? elemento.nombre);
+        }
+    }
+    return nombres;
+}
+
+function construirTokensSemanticos(documento: TextDocument, analisis: AnalisisDocumento): SemanticTokens {
+    const builder = new SemanticTokensBuilder();
+    const clases = obtenerNombresDeClases(analisis);
+    const funciones = new Set(analisis.funciones.map(funcion => funcion.nombre));
+    const parametros = new Set(analisis.funciones.flatMap(funcion => funcion.parametros));
+    const lineas = documento.getText().split(/\r?\n/);
+    let enComentarioBloque = false;
+
+    for (let numeroLinea = 0; numeroLinea < lineas.length; numeroLinea++) {
+        const linea = lineas[numeroLinea];
+        let columna = 0;
+        let enCadena = false;
+        let escape = false;
+
+        while (columna < linea.length) {
+            const caracter = linea[columna];
+            const siguiente = linea[columna + 1];
+            if (enComentarioBloque) {
+                if (caracter === '*' && siguiente === '/') {
+                    enComentarioBloque = false;
+                    columna += 2;
+                } else {
+                    columna++;
+                }
+                continue;
+            }
+            if (enCadena) {
+                if (!escape && caracter === '"') enCadena = false;
+                escape = !escape && caracter === '\\';
+                if (caracter !== '\\') escape = false;
+                columna++;
+                continue;
+            }
+            if (caracter === '/' && siguiente === '/') break;
+            if (caracter === '/' && siguiente === '*') {
+                enComentarioBloque = true;
+                columna += 2;
+                continue;
+            }
+            if (caracter === '"') {
+                enCadena = true;
+                columna++;
+                continue;
+            }
+
+            const coincidencia = linea.slice(columna).match(/^[\p{L}_][\p{L}\p{N}_]*/u);
+            if (!coincidencia) {
+                columna++;
+                continue;
+            }
+            const palabra = coincidencia[0];
+            const fin = columna + palabra.length;
+            const antes = linea.slice(0, columna).trimEnd();
+            const despues = linea.slice(fin).trimStart();
+            let tipo: string | undefined;
+
+            if (clases.has(palabra)) {
+                tipo = 'class';
+            } else if (antes.endsWith('.')) {
+                tipo = despues.startsWith('(') ? 'method' : 'property';
+            } else if (funciones.has(palabra)) {
+                tipo = 'function';
+            } else if (parametros.has(palabra)) {
+                tipo = 'parameter';
+            } else if (analisis.identificadores.has(palabra) || palabra === 'consola') {
+                tipo = 'variable';
+            }
+
+            const indiceTipo = tipo ? INDICES_TOKENS_SEMANTICOS.get(tipo) : undefined;
+            if (indiceTipo !== undefined) builder.push(numeroLinea, columna, palabra.length, indiceTipo, 0);
+            columna = fin;
+        }
+    }
+    return builder.build();
+}
+
 connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
     carpetasTrabajo = (params.workspaceFolders ?? []).map(folder => path.normalize(uriAPathFs(folder.uri)));
     rutaEjemplos = params.initializationOptions?.rutaEjemplos;
-    if (rutaEjemplos) {
-        await cargarEjemplosDesdeCarpeta(rutaEjemplos);
-    }
-    await cargarArchivosUsuario();
+    // La indexación global no bloquea sugerencias del archivo que el usuario abre.
+    // Los documentos abiertos se analizan de inmediato en sus eventos LSP.
+    queueMicrotask(() => {
+        void cargarArchivosUsuario();
+    });
 
     return {
         capabilities: {
@@ -613,6 +1106,11 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
             completionProvider: {
                 resolveProvider: false,
                 triggerCharacters: ['.', '{', '"']
+            },
+            hoverProvider: true,
+            semanticTokensProvider: {
+                legend: LEYENDA_SEMANTICA,
+                full: true
             }
         }
     };
@@ -623,11 +1121,16 @@ connection.onCompletion((params: CompletionParams): CompletionItem[] => {
     if (!documento) {
         return [];
     }
-    const analisis = analizarTextoQuetzal(documento.getText());
+    const analisis = obtenerAnalisisDocumento(documento);
+
+    const contextoNuevo = detectarContextoNuevo(documento, params.position);
+    if (contextoNuevo) {
+        return filtrarPorPrefijo(sugerirConstructores(analisis), contextoNuevo.prefijo);
+    }
 
     const contextoMetodo = detectarContextoMetodo(documento, params.position);
     if (contextoMetodo) {
-        const metodos = sugerirMetodos(documento, analisis, contextoMetodo.identificador);
+        const metodos = sugerirMetodos(documento, analisis, contextoMetodo.expresion);
         return filtrarPorPrefijo(metodos, contextoMetodo.prefijo);
     }
 
@@ -647,17 +1150,29 @@ connection.onCompletion((params: CompletionParams): CompletionItem[] => {
     return filtrarPorPrefijo(items, prefijo);
 });
 
+connection.onHover((params: HoverParams): Hover | null => {
+    const documento = documentos.get(params.textDocument.uri);
+    if (!documento) return null;
+    return obtenerHover(documento, params.position, obtenerAnalisisDocumento(documento));
+});
+
+connection.languages.semanticTokens.on((params: SemanticTokensParams): SemanticTokens => {
+    const documento = documentos.get(params.textDocument.uri);
+    if (!documento) return { data: [] };
+    return construirTokensSemanticos(documento, obtenerAnalisisDocumento(documento));
+});
+
 documentos.onDidOpen(async evento => {
     const ruta = uriAPathFs(evento.document.uri);
     if (esQuetzal(ruta)) {
-        await registrarAnalisis(path.normalize(ruta), 'usuario', evento.document.getText());
+        obtenerAnalisisDocumento(evento.document);
     }
 });
 
 documentos.onDidChangeContent(async evento => {
     const ruta = uriAPathFs(evento.document.uri);
     if (esQuetzal(ruta)) {
-        await registrarAnalisis(path.normalize(ruta), 'usuario', evento.document.getText());
+        obtenerAnalisisDocumento(evento.document);
     }
 });
 

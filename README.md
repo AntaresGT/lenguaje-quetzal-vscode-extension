@@ -5,7 +5,7 @@
   
   **Soporte completo para el lenguaje de programación Quetzal**
   
-  [![Versión](https://img.shields.io/badge/versión-0.0.2-blue.svg)](package.json)
+  [![Versión](https://img.shields.io/badge/versión-0.0.5-blue.svg)](package.json)
   [![VS Code](https://img.shields.io/badge/VS%20Code-1.80.0+-brightgreen.svg)](https://code.visualstudio.com/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
   [![Licencia](https://img.shields.io/badge/licencia-AntaresGT-orange.svg)](LICENSE)
@@ -28,9 +28,13 @@
 - Sugerencias automáticas para palabras reservadas y tipos de datos
 - Completado contextual de funciones y variables definidas por el usuario
 - Autocompletado de métodos según el tipo de dato (texto, lista, jsn, etc.)
+- Catálogo completo para `Matemática`, `Bits`, `Tiempo`, `SistemaArchivos` y `red`
+- Sugerencias contextuales para símbolos importados, constructores y cadenas como `respuesta.bits().a_hex()`
+- Firmas, retornos, explicación breve y enlaces a documentación oficial dentro de cada sugerencia
+- Autocompletado de rutas y símbolos de módulos nativos dentro de `importar`
 - Snippets predefinidos para estructuras comunes del lenguaje
 - Información detallada al hacer hover sobre elementos
-- Soporte para objetos builtin: `consola`, `Matemática`
+- Soporte para objetos integrados: `consola`, `Matemática` y módulos nativos
 
 ### Formateador de Código
 - Formateo automático con sangría inteligente

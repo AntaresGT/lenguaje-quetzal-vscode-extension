@@ -2,11 +2,11 @@
 
 Este documento proporciona ejemplos claros de cómo cumplir correctamente con los requisitos de atribución de la Licencia AntaresGT.
 
-## 📋 Requisitos Obligatorios
+## Requisitos Obligatorios
 
 Todos los usos, modificaciones, distribuciones y trabajos derivados del software **DEBEN** incluir de manera prominente y claramente visible la atribución a AntaresGT.
 
-## ✅ Ejemplos Correctos de Atribución
+## Ejemplos Correctos de Atribución
 
 ### 1. En README.md o Documentación Principal
 
@@ -84,7 +84,7 @@ desarrollado originalmente por AntaresGT (https://antaresgt.com)"
 ### 7. En Commits de Git (Recomendado)
 
 ```bash
-git commit -m "feat: Agregada nueva funcionalidad basada en Quetzal de AntaresGT"
+git commit -m "caracteristica|función: Agregada nueva funcionalidad basada en Quetzal de AntaresGT"
 ```
 
 ## ❌ Ejemplos de Atribución Insuficiente
@@ -107,7 +107,7 @@ git commit -m "feat: Agregada nueva funcionalidad basada en Quetzal de AntaresGT
 // AntaresGT (comentario sin contexto)
 ```
 
-## 📍 Ubicaciones Requeridas para la Atribución
+## Ubicaciones Requeridas para la Atribución
 
 ### **Obligatorio en:**
 - ✅ README.md principal
@@ -117,12 +117,12 @@ git commit -m "feat: Agregada nueva funcionalidad basada en Quetzal de AntaresGT
 - ✅ Material promocional que mencione las tecnologías
 
 ### **Recomendado en:**
-- 🔶 Commits de Git
-- 🔶 Changelog/Release notes
-- 🔶 Documentación técnica
-- 🔶 Comentarios en código modificado
+- Commits de Git
+- Changelog/Release notes
+- Documentación técnica
+- Comentarios en código modificado
 
-## 🚀 Para Proyectos Comerciales
+## Para Proyectos Comerciales
 
 Si estás usando este software en un producto comercial, la atribución **DEBE** ser claramente visible para los usuarios finales en:
 
@@ -131,7 +131,7 @@ Si estás usando este software en un producto comercial, la atribución **DEBE**
 3. **Material promocional relevante**
 4. **Sitio web del producto** (si menciona tecnologías utilizadas)
 
-## 📞 Contacto para Consultas
+## Contacto para Consultas
 
 Si tienes dudas sobre cómo implementar correctamente la atribución:
 
@@ -139,7 +139,7 @@ Si tienes dudas sobre cómo implementar correctamente la atribución:
 🏢 **Empresa:** AntaresGT  
 🌐 **Web:** https://antaresgt.com
 
-## ⚖️ Consecuencias del Incumplimiento
+## Consecuencias del Incumplimiento
 
 El no cumplir con los requisitos de atribución resultará en:
 - Terminación automática de la licencia

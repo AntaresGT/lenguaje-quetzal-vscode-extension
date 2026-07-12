@@ -3,17 +3,11 @@ import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { FormateadorQuetzal } from './formateador';
 import { DiagnosticadorQuetzal } from './diagnosticador';
-import { ProveedorCompletado } from './proveedor_completado';
-import { ServidorLenguajeQuetzal } from './servidor_lenguaje';
 
 let clienteLenguaje: LanguageClient | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extensión Lenguaje Quetzal activada');
-
-    // Instancias compartidas para características del lenguaje
-    const servidorLenguajeInterno = new ServidorLenguajeQuetzal();
-    const proveedorAutocompletado = new ProveedorCompletado(servidorLenguajeInterno);
 
     // Inicializar servidor de lenguaje con implementación LSP
     inicializar_servidor_lenguaje(context);
@@ -61,6 +55,13 @@ export function activate(context: vscode.ExtensionContext) {
     // Función para actualizar diagnósticos
     const actualizar_diagnosticos = (document: vscode.TextDocument) => {
         if (document.languageId === 'quetzal') {
+            const habilitado = vscode.workspace
+                .getConfiguration('quetzal', document.uri)
+                .get<boolean>('diagnosticos.habilitado', true);
+            if (!habilitado) {
+                coleccion_diagnosticos.delete(document.uri);
+                return;
+            }
             const diagnosticos = diagnosticador.analizar_documento(document);
             coleccion_diagnosticos.set(document.uri, diagnosticos);
         }
@@ -79,33 +80,13 @@ export function activate(context: vscode.ExtensionContext) {
     // Analizar documentos ya abiertos
     vscode.workspace.textDocuments.forEach(actualizar_diagnosticos);
 
-    // Agregar disposables al contexto
-    const proveedorHover = vscode.languages.registerHoverProvider('quetzal', {
-        provideHover(document, position) {
-            const rangoPalabra = document.getWordRangeAtPosition(position, /[\p{L}\p{N}_]+/u);
-            if (!rangoPalabra) {
-                return null;
-            }
-            const palabra = document.getText(rangoPalabra);
-            return proveedorAutocompletado.obtener_informacion_hover(palabra);
-        }
-    });
-
-    const proveedorCompletadoDispos = vscode.languages.registerCompletionItemProvider(
-        { language: 'quetzal', scheme: 'file' },
-        proveedorAutocompletado,
-        '.'
-    );
-
     context.subscriptions.push(
         comando_formatear,
         comando_ejecutar,
         proveedor_formato,
         coleccion_diagnosticos,
         cambio_documento,
-        apertura_documento,
-        proveedorCompletadoDispos,
-        proveedorHover
+        apertura_documento
     );
 
     vscode.window.showInformationMessage('¡Lenguaje Quetzal listo para usar!');

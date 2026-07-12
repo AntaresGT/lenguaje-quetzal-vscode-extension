@@ -14,12 +14,16 @@ export interface DefinicionPalabra {
     descripcion: string;
     tipo: CompletionItemKind;
     snippet?: string;
+    documentacion?: string;
+    ejemplo?: string;
 }
 
+const DOCS = 'https://lenguaje-quetzal.com';
+
 export const PALABRAS_RESERVADAS: DefinicionPalabra[] = [
-    { etiqueta: 'si', descripcion: 'Condicional si', tipo: CompletionItemKind.Keyword },
+    { etiqueta: 'si', descripcion: 'Ejecuta un bloque cuando la condición es verdadera', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/control/condicionales/`, ejemplo: 'si (${1:condición}) {\n    ${2:// instrucciones}\n}' },
     { etiqueta: 'sino', descripcion: 'Condicional sino', tipo: CompletionItemKind.Keyword },
-    { etiqueta: 'mientras', descripcion: 'Bucle mientras', tipo: CompletionItemKind.Keyword },
+    { etiqueta: 'mientras', descripcion: 'Repite mientras la condición sea verdadera', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/control/bucles/`, ejemplo: 'mientras (${1:condición}) {\n    ${2:// instrucciones}\n}' },
     { etiqueta: 'para', descripcion: 'Bucle para', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'en', descripcion: 'Iterar sobre una colección', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'cada', descripcion: 'Iterar asignando nombre al elemento', tipo: CompletionItemKind.Keyword },
@@ -28,14 +32,19 @@ export const PALABRAS_RESERVADAS: DefinicionPalabra[] = [
     { etiqueta: 'continuar', descripcion: 'Continuar bucle', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'retornar', descripcion: 'Retornar valor', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'var', descripcion: 'Variable mutable', tipo: CompletionItemKind.Keyword },
-    { etiqueta: 'objeto', descripcion: 'Definir objeto', tipo: CompletionItemKind.Keyword },
+    { etiqueta: 'objeto', descripcion: 'Define un objeto con atributos y métodos', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/clases-objetos/` },
+    { etiqueta: 'prototipo', descripcion: 'Define un contrato para objetos', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/prototipos/` },
+    { etiqueta: 'implementa', descripcion: 'Declara prototipos implementados', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/prototipos/` },
+    { etiqueta: 'opcional', descripcion: 'Marca un miembro de prototipo como opcional', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/prototipos/` },
+    { etiqueta: 'padre', descripcion: 'Accede a miembros heredados', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/clases-objetos/` },
+    { etiqueta: 'constructor', descripcion: 'Identificador reservado para constructores', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/constructores/` },
     { etiqueta: 'nuevo', descripcion: 'Crear nueva instancia', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'ambiente', descripcion: 'Referencia al objeto actual', tipo: CompletionItemKind.Keyword },
-    { etiqueta: 'importar', descripcion: 'Importar módulo', tipo: CompletionItemKind.Keyword },
+    { etiqueta: 'importar', descripcion: 'Importa símbolos desde otro módulo', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/modulos/importar-exportar/`, ejemplo: 'importar { ${1:Simbolo} } desde "${2:modulo}"' },
     { etiqueta: 'exportar', descripcion: 'Exportar elementos', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'desde', descripcion: 'Especificar origen de importación', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'como', descripcion: 'Crear alias en importación', tipo: CompletionItemKind.Keyword },
-    { etiqueta: 'intentar', descripcion: 'Bloque intentar', tipo: CompletionItemKind.Keyword },
+    { etiqueta: 'intentar', descripcion: 'Protege instrucciones que pueden lanzar excepción', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/errores/try-catch/`, ejemplo: 'intentar {\n    ${1:// código}\n} capturar (excepcion ${2:error}) {\n    ${3:// recuperación}\n}' },
     { etiqueta: 'atrapar', descripcion: 'Bloque atrapar', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'capturar', descripcion: 'Bloque capturar', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'finalmente', descripcion: 'Bloque finalmente', tipo: CompletionItemKind.Keyword },
@@ -45,10 +54,14 @@ export const PALABRAS_RESERVADAS: DefinicionPalabra[] = [
     { etiqueta: 'asíncrono', descripcion: 'Función asíncrona (con tilde)', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'y', descripcion: 'Operador lógico AND', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'o', descripcion: 'Operador lógico OR', tipo: CompletionItemKind.Keyword },
+    { etiqueta: 'no', descripcion: 'Negación lógica', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/fundamentos/operadores/` },
     { etiqueta: 'público', descripcion: 'Miembro público (con tilde)', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'publico', descripcion: 'Miembro público', tipo: CompletionItemKind.Keyword },
     { etiqueta: 'privado', descripcion: 'Miembro privado', tipo: CompletionItemKind.Keyword },
-    { etiqueta: 'libre', descripcion: 'Miembro accesible sin instanciar objeto', tipo: CompletionItemKind.Keyword }
+    { etiqueta: 'libre', descripcion: 'Miembro accesible sin instanciar objeto', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/oop/modificadores-acceso/` },
+    { etiqueta: 'mut', descripcion: 'Palabra reservada para mutabilidad futura', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/referencia/palabras-reservadas/` },
+    { etiqueta: 'de', descripcion: 'Palabra reservada del lenguaje', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/referencia/palabras-reservadas/` },
+    { etiqueta: 'es', descripcion: 'Palabra reservada del lenguaje', tipo: CompletionItemKind.Keyword, documentacion: `${DOCS}/referencia/palabras-reservadas/` }
 ];
 
 export const TIPOS_BÁSICOS: DefinicionPalabra[] = [

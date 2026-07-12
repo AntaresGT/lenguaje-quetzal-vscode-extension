@@ -1,6 +1,10 @@
 .vscode/**
 .vscode-test/**
 src/**
+.agents/**
+ejemplos/**
+skills-lock.json
+tmp/**
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md
@@ -8,7 +12,6 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
-node_modules/**
 .git/**
 *.vsix
 .DS_Store
