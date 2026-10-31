@@ -6,7 +6,7 @@ Todos los cambios notables de este proyecto serán documentados en este archivo.
 
 ### Agregado
 - Cliente LSP que arranca `quetzal-lsp` por stdio
-- Ajuste `quetzal.lsp.ruta` y búsqueda del ejecutable en PATH, Windows y Linux
+- Ajuste `quetzal.lsp.ruta` y búsqueda del ejecutable en PATH y rutas habituales de Windows, Linux y macOS
 
 ---
 

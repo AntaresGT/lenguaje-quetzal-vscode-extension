@@ -127,7 +127,7 @@
                 "quetzal.lsp.ruta": {
                     "type": "string",
                     "default": "",
-                    "description": "Ruta absoluta a quetzal-lsp. Vacío busca en PATH y en las rutas habituales de Windows y Linux."
+                    "description": "Ruta absoluta a quetzal-lsp o a su carpeta. Vacío busca en PATH y en las rutas habituales de Windows, Linux y macOS."
                 }
             }
         }
