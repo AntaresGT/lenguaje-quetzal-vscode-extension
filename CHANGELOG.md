@@ -2,6 +2,14 @@
 
 Todos los cambios notables de este proyecto serán documentados en este archivo.
 
+## [0.0.2] - 2026-10-31
+
+### Agregado
+- Cliente LSP que arranca `quetzal-lsp` por stdio
+- Ajuste `quetzal.lsp.ruta` y búsqueda del ejecutable en PATH, Windows y Linux
+
+---
+
 ## [0.0.12] - 2025-06-28
 
 ### ✨ Agregado

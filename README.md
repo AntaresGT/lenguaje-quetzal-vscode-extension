@@ -5,7 +5,7 @@
   
   **Soporte completo para el lenguaje de programación Quetzal**
   
-  [![Versión](https://img.shields.io/badge/versión-0.0.1-blue.svg)](package.json)
+  [![Versión](https://img.shields.io/badge/versión-0.0.2-blue.svg)](package.json)
   [![VS Code](https://img.shields.io/badge/VS%20Code-1.80.0+-brightgreen.svg)](https://code.visualstudio.com/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
   [![Licencia](https://img.shields.io/badge/licencia-AntaresGT-orange.svg)](LICENSE)
