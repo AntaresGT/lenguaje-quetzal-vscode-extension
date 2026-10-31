@@ -35,6 +35,9 @@
     "publisher": "antaresgt",
     "displayLanguage": "es",
     "main": "./out/extension.js",
+    "activationEvents": [
+        "onLanguage:quetzal"
+    ],
     "contributes": {
         "languages": [
             {
@@ -120,6 +123,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Habilitar diagnósticos de sintaxis y errores"
+                },
+                "quetzal.lsp.ruta": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Ruta absoluta a quetzal-lsp. Vacío busca en PATH y en las rutas habituales de Windows y Linux."
                 }
             }
         }
