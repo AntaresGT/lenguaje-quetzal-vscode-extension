@@ -13,7 +13,6 @@ let cliente: LanguageClient | undefined;
 export async function iniciarClienteLsp(rutaEjecutable: string): Promise<LanguageClient> {
     const opcionesServidor: ServerOptions = {
         command: rutaEjecutable,
-        args: ['--stdio'],
         transport: TransportKind.stdio,
         options: { shell: false },
     };

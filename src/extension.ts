@@ -48,16 +48,16 @@ export async function activate(context: vscode.ExtensionContext) {
     if (rutaLsp) {
         try {
             await iniciarClienteLsp(rutaLsp);
+            return;
         } catch (error) {
             const mensaje = error instanceof Error ? error.message : String(error);
             vscode.window.showErrorMessage(`No se pudo iniciar quetzal-lsp: ${mensaje}`);
         }
-        return;
+    } else {
+        vscode.window.showWarningMessage(
+            'No se encontró quetzal-lsp. Instálalo en el PATH o configura quetzal.lsp.ruta.'
+        );
     }
-
-    vscode.window.showWarningMessage(
-        'No se encontró quetzal-lsp. Instálalo en el PATH o configura quetzal.lsp.ruta.'
-    );
     registrarProveedoresLocales(context);
 }
 

@@ -45,68 +45,38 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
      * Inicializa los elementos de autocompletado básicos
      */
     private inicializar_completados(): void {
-        // Palabras reservadas de control de flujo
         this.palabras_reservadas = [
-            this.crear_item_palabra_reservada('si', 'Condicional si'),
-            this.crear_item_palabra_reservada('sino', 'Condicional sino'),
-            this.crear_item_palabra_reservada('mientras', 'Bucle mientras'),
-            this.crear_item_palabra_reservada('para', 'Bucle para'),
-            this.crear_item_palabra_reservada('hacer', 'Bucle hacer-mientras'),
-            this.crear_item_palabra_reservada('romper', 'Romper bucle'),
-            this.crear_item_palabra_reservada('continuar', 'Continuar bucle'),
-            this.crear_item_palabra_reservada('retornar', 'Retornar valor'),
-            this.crear_item_palabra_reservada('función', 'Definir función (con tilde)'),
-            this.crear_item_palabra_reservada('funcion', 'Definir función'),
-            this.crear_item_palabra_reservada('objeto', 'Definir objeto'),
-            this.crear_item_palabra_reservada('nuevo', 'Crear nueva instancia'),
-            this.crear_item_palabra_reservada('ambiente', 'Referencia al objeto actual'),
-            this.crear_item_palabra_reservada('importar', 'Importar módulo'),
-            this.crear_item_palabra_reservada('exportar', 'Exportar elementos'),
-            this.crear_item_palabra_reservada('desde', 'Especificar origen'),
-            this.crear_item_palabra_reservada('como', 'Crear alias'),
-            this.crear_item_palabra_reservada('intentar', 'Bloque try'),
-            this.crear_item_palabra_reservada('atrapar', 'Bloque catch'),
-            this.crear_item_palabra_reservada('finalmente', 'Bloque finally'),
-            this.crear_item_palabra_reservada('lanzar', 'Lanzar excepción'),
-            this.crear_item_palabra_reservada('y', 'Operador lógico AND'),
-            this.crear_item_palabra_reservada('o', 'Operador lógico OR'),
-            this.crear_item_palabra_reservada('mut', 'Modificador mutable'),
-            this.crear_item_palabra_reservada('público', 'Modificador público (con tilde)'),
-            this.crear_item_palabra_reservada('publico', 'Modificador público'),
-            this.crear_item_palabra_reservada('privado', 'Modificador privado'),
-            this.crear_item_palabra_reservada('libre', 'Función estática'),
-            this.crear_item_palabra_reservada('asíncrono', 'Función asíncrona (con tilde)'),
-            this.crear_item_palabra_reservada('asincrono', 'Función asíncrona'),
-            this.crear_item_palabra_reservada('esperar', 'Esperar resultado asíncrono'),
-            this.crear_item_palabra_reservada('excepción', 'Tipo excepción (con tilde)'),
-            this.crear_item_palabra_reservada('excepcion', 'Tipo excepción')
-        ];
+            'si', 'sino', 'mientras', 'para', 'hacer', 'en', 'cada', 'romper', 'continuar',
+            'retornar', 'intentar', 'capturar', 'finalmente', 'lanzar', 'importar', 'exportar',
+            'desde', 'como', 'nuevo', 'esto', 'padre', 'hereda', 'implementa', 'libre', 'opcional',
+            'asincrono', 'asincróno', 'esperar', 'funcion', 'objeto', 'prototipo', 'var',
+            'publico', 'público', 'privado', 'excepcion', 'excepción', 'y', 'o'
+        ].map(palabra => this.crear_item_palabra_reservada(palabra, 'Palabra clave de Quetzal'));
 
-        // Tipos de datos
         this.tipos_datos = [
-            this.crear_item_tipo('vacío', 'Tipo sin valor (con tilde)'),
             this.crear_item_tipo('vacio', 'Tipo sin valor'),
+            this.crear_item_tipo('vacío', 'Tipo sin valor'),
             this.crear_item_tipo('entero', 'Número entero'),
-            this.crear_item_tipo('número', 'Número decimal (con tilde)'),
             this.crear_item_tipo('numero', 'Número decimal'),
-            this.crear_item_tipo('cadena', 'Cadena de texto'),
-            this.crear_item_tipo('bool', 'Valor booleano'),
+            this.crear_item_tipo('número', 'Número decimal'),
+            this.crear_item_tipo('texto', 'Cadena de texto Unicode'),
+            this.crear_item_tipo('log', 'Valor lógico'),
             this.crear_item_tipo('lista', 'Lista de elementos'),
             this.crear_item_tipo('jsn', 'Objeto JSON'),
-            this.crear_item_valor('verdadero', 'Valor booleano verdadero'),
-            this.crear_item_valor('falso', 'Valor booleano falso')
+            this.crear_item_valor('verdadero', 'Valor lógico verdadero'),
+            this.crear_item_valor('falso', 'Valor lógico falso'),
+            this.crear_item_valor('nulo', 'Ausencia de valor')
         ];
 
-        // Funciones builtin
         this.funciones_builtin = [
-            this.crear_item_funcion('imprimir', 'Imprimir mensaje en consola', 'imprimir("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_exito', 'Imprimir mensaje de éxito', 'imprimir_exito("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_error', 'Imprimir mensaje de error', 'imprimir_error("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_advertencia', 'Imprimir advertencia', 'imprimir_advertencia("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_informacion', 'Imprimir información', 'imprimir_informacion("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_depurar', 'Imprimir mensaje de debug', 'imprimir_depurar("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_alerta', 'Imprimir alerta', 'imprimir_alerta("${1:mensaje}")'),
-            this.crear_item_funcion('imprimir_confirmacion', 'Imprimir confirmación', 'imprimir_confirmacion("${1:mensaje}")')
+            this.crear_item_funcion('consola.mostrar', 'Mostrar mensaje en consola', 'consola.mostrar(${1:mensaje})'),
+            this.crear_item_funcion('consola.mostrar_error', 'Mostrar error en consola', 'consola.mostrar_error(${1:mensaje})'),
+            this.crear_item_funcion('consola.mostrar_advertencia', 'Mostrar advertencia', 'consola.mostrar_advertencia(${1:mensaje})'),
+            this.crear_item_funcion('consola.mostrar_exito', 'Mostrar mensaje de éxito', 'consola.mostrar_exito(${1:mensaje})'),
+            this.crear_item_funcion('consola.mostrar_informacion', 'Mostrar información', 'consola.mostrar_informacion(${1:mensaje})'),
+            this.crear_item_funcion('consola.pedir', 'Leer entrada de consola', 'consola.pedir(${1:mensaje})'),
+            this.crear_item_funcion('consola.pedir_secreto', 'Leer entrada secreta', 'consola.pedir_secreto(${1:mensaje})'),
+            this.crear_item_funcion('rango', 'Crear lista de enteros', 'rango(${1:inicio}, ${2:fin})')
         ];
     }
 
@@ -214,14 +184,14 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_funciones_documento(document: vscode.TextDocument): string[] {
         const funciones: string[] = [];
         const texto = document.getText();
-        const regex = /(?:funcion|fn)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+        const regex = /(?:asincrono\s+)?(?:entero|número|numero|texto|log|lista|jsn|vacio|vacío|[A-Z][\p{L}\p{N}_]*)\s+([\p{L}_][\p{L}\p{N}_]*)\s*\(/gu;
         let match;
 
         while ((match = regex.exec(texto)) !== null) {
             funciones.push(match[1]);
         }
 
-        return [...new Set(funciones)]; // Eliminar duplicados
+        return [...new Set(funciones)];
     }
 
     /**
@@ -230,14 +200,14 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_variables_documento(document: vscode.TextDocument): string[] {
         const variables: string[] = [];
         const texto = document.getText();
-        const regex = /(?:entero|número|numero|cadena|bool|lista|jsn|vacio)\s+(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*=/g;
+        const regex = /(?:entero|número|numero|texto|log|lista|jsn|vacio|vacío|[A-Z][\p{L}\p{N}_]*)\s+(?:var\s+)?([\p{L}_][\p{L}\p{N}_]*)\s*=/gu;
         let match;
 
         while ((match = regex.exec(texto)) !== null) {
             variables.push(match[1]);
         }
 
-        return [...new Set(variables)]; // Eliminar duplicados
+        return [...new Set(variables)];
     }
 
     /**
@@ -246,7 +216,7 @@ export class ProveedorCompletado implements vscode.CompletionItemProvider {
     private extraer_objetos_documento(document: vscode.TextDocument): string[] {
         const objetos: string[] = [];
         const texto = document.getText();
-        const regex = /objeto\s+([A-Z][a-zA-Z0-9_]*)\s*\{/g;
+        const regex = /objeto\s+([A-Z][\p{L}\p{N}_]*)[^{]*\{/gu;
         let match;
 
         while ((match = regex.exec(texto)) !== null) {

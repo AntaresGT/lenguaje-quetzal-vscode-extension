@@ -92,7 +92,8 @@
         {
             "name": "Valores booleanos",
             "scope": [
-                "constant.language.boolean.quetzal"
+                "constant.language.boolean.quetzal",
+                "constant.language.null.quetzal"
             ],
             "settings": {
                 "foreground": "#569CD6"
@@ -131,7 +132,8 @@
             "name": "Variables",
             "scope": [
                 "variable.other.quetzal",
-                "variable.other.declaration.quetzal"
+                "variable.other.declaration.quetzal",
+                "support.variable.builtin.quetzal"
             ],
             "settings": {
                 "foreground": "#9CDCFE"
